@@ -24,7 +24,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="border-t border-white/5 pt-8 text-center text-white/40 text-sm">
-          © 2025 Iuptec - Experiência + IA que Funciona
+          © 2026 Iuptec - Experiência + IA que Funciona
         </div>
       </div>
     </footer>

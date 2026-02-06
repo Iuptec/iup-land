@@ -1,3 +1,5 @@
+import Button from "./ui/Button";
+
 export default function Hero() {
   return (
     <section className="min-h-screen flex items-center pt-20 relative overflow-hidden">
@@ -24,12 +26,13 @@ export default function Hero() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4">
-              <button className="bg-gradient-to-r from-iuptec-orange to-yellow-400 text-dark-950 px-8 py-4 rounded-xl font-bold hover:shadow-lg hover:shadow-iuptec-orange/50 transition">
+              <Button variant="animated">
                 Começar Agora →
-              </button>
-              <button className="border-2 border-iuptec-teal text-iuptec-teal px-8 py-4 rounded-xl font-bold hover:bg-iuptec-teal/10 transition">
+              </Button>
+              
+              <Button variant="sparkle">
                 Ver Cases
-              </button>
+              </Button>
             </div>
           </div>
           

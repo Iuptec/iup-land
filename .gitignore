@@ -1,3 +1,87 @@
-node_modules
-dist
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies
+/node_modules
+/.pnp
+.pnp.js
+.pnp.cjs
+
+# Build outputs
+/dist
+/dist-ssr
+/build
+/.next
+/out
+
+# Runtime data
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+/coverage
+/.nyc_output
+
+# Vite cache
+.cache/
 *.local
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.test
+.env.example
+
+# Editor and IDE
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.swp
+*.swo
+*~
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Package manager specific
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+shrinkwrap.yaml
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Testing
+/jest-report
+/cypress/videos
+/cypress/screenshots
+
+# Vercel (opcional)
+.vercel
+
+# Local history
+.history/
+
+# Temporary files
+tmp/
+temp/

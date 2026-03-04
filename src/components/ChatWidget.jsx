@@ -41,7 +41,7 @@ export default function ChatWidget() {
   }
 
   const callGeminiAPI = async (userMessage) => {
-    const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'YOUR_KEY_HERE'
+    const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'AIzaSyCHur_wLAIlB6hCfQn1lSbaqguhVOOKw6Y'
     
     const systemPrompt = `Você é o assistente virtual da Iuptec, empresa com 30+ anos de experiência que oferece soluções de IA.
 

@@ -1,29 +1,25 @@
-// ChatWidget.jsx - VERSÃO MELHORADA - Gemini 2.5 Flash
-// Corrigido: token limit, contador, system prompt
-
+// ChatWidget.jsx - LÓGICA SIMPLES (SEM IA)
 import { useState, useRef, useEffect } from 'react'
-
-const MAX_AI_MESSAGES = 5
 
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false)
   const [step, setStep] = useState('initial')
-  const [leadData, setLeadData] = useState({ name: '', phone: '', email: '' })
+  const [leadData, setLeadData] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    companySize: '',
+    hasIA: '',
+    goal: ''
+  })
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: 'Olá! 👋 Sou o Assistente da Iuptec. Como posso te ajudar hoje?',
+      content: 'Olá! 👋 Sou o Assistente da Iuptec. Vamos descobrir a melhor solução pra você!'
     }
   ])
   const [input, setInput] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [aiMessageCount, setAiMessageCount] = useState(0)
-  const [conversationHistory, setConversationHistory] = useState([])
-  const [selectedDate, setSelectedDate] = useState(null)
-  const [selectedTime, setSelectedTime] = useState(null)
   const scrollRef = useRef(null)
-
-  const TIME_SLOTS = ['10:00', '10:30', '11:00', '11:30', '14:00', '14:30', '15:00', '15:30', '16:00']
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -31,8 +27,8 @@ export default function ChatWidget() {
     }
   }, [messages])
 
-  const addMessage = (role, content, type = null, buttons = null) => {
-    setMessages(prev => [...prev, { role, content, type, buttons }])
+  const addMessage = (role, content, buttons = null) => {
+    setMessages(prev => [...prev, { role, content, buttons }])
   }
 
   const formatPhone = (value) => {
@@ -42,89 +38,50 @@ export default function ChatWidget() {
     return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
   }
 
-  const callGeminiAPI = async (userMessage) => {
-    const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'AIzaSyCHur_wLAIlB6hCfQn1lSbaqguhVOOKw6Y'
+  const getRecommendation = () => {
+    const { companySize, hasIA, goal } = leadData
     
-    // System prompt melhorado e conciso
-    const systemPrompt = `Você é o assistente da Iuptec (30+ anos, especialista em IA para PMEs).
-
-OBJETIVO: Qualificar e converter em 5 mensagens.
-
-SOLUÇÕES IUPTEC:
-1. Custom IA - Agentes sob medida
-2. Automações - R$ 2.997+ (implementação rápida)
-3. Academia IA - R$ 997 (do zero ao pro)
-
-ESTRATÉGIA (${aiMessageCount + 1}/5):
-Msg 1-2: Entender + apresentar solução
-Msg 3-4: Benefícios + preços + cases (80% atendimento automatizado)
-Msg 4-5: CTA forte (agendar diagnóstico)
-
-ESTILO:
-- Máximo 3 parágrafos curtos
-- Objetivo e direto
-- Foco em resultados
-- Perguntas que direcionam
-
-Lead: ${leadData.name}`
-
-    console.log(`🤖 Chamando Gemini (mensagem ${aiMessageCount + 1}/${MAX_AI_MESSAGES})`)
-
-    try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            systemInstruction: {
-              parts: [{ text: systemPrompt }]
-            },
-            contents: [
-              ...conversationHistory,
-              {
-                parts: [{ text: userMessage }]
-              }
-            ],
-            generationConfig: {
-              temperature: 0.8,
-              maxOutputTokens: 800, // Aumentado de 300
-              topP: 0.95,
-            }
-          })
-        }
-      )
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        console.error('❌ Gemini API error:', errorData)
-        throw new Error(`API error: ${response.status}`)
+    // Lógica de recomendação
+    if (goal === 'aprender' || companySize === 'solo' || hasIA === 'nao') {
+      return {
+        product: 'Academia Online',
+        price: 'R$ 997',
+        description: '🎓 Do zero ao avançado em IA\n✨ Sem programar\n✨ 6 módulos + projetos',
+        cta: 'Quero começar agora'
       }
-
-      const data = await response.json()
-      console.log('✅ Gemini resposta recebida')
-      
-      const aiText = data.candidates[0]?.content?.parts[0]?.text
-      if (!aiText) {
-        console.error('❌ Resposta vazia da IA')
-        return null
+    }
+    
+    if (goal === 'automatizar' || companySize === 'pequena') {
+      return {
+        product: 'Hiperzord',
+        price: 'R$ 297/mês ou R$ 1.997/ano',
+        description: '⚡ Automações prontas\n✨ Ferramentas profissionais\n✨ Implementação rápida',
+        cta: 'Começar agora'
       }
-      
-      return aiText
-    } catch (error) {
-      console.error('❌ Erro ao chamar Gemini:', error)
-      return null
+    }
+    
+    if (goal === 'presencial') {
+      return {
+        product: 'Imersão IE',
+        price: 'R$ 497',
+        description: '🎯 Presencial\n✨ 3 semanas acompanhamento\n✨ N8N para agentes',
+        cta: 'Quero participar'
+      }
+    }
+    
+    // Default: On-demand
+    return {
+      product: 'Desenvolvimento On-demand',
+      price: 'Sob consulta',
+      description: '🎯 Solução customizada\n✨ Agentes sob medida\n✨ Integração completa',
+      cta: 'Falar com especialista'
     }
   }
 
   const handleInitialChoice = (choice) => {
-    if (choice === 'resolve') {
-      addMessage('user', 'Quero resolver minha dúvida agora')
-      addMessage('assistant', 'Ótimo! Primeiro, como posso te chamar? 😊')
-      setStep('name')
-    } else {
-      addMessage('user', 'Quero agendar diagnóstico gratuito')
-      addMessage('assistant', 'Perfeito! Qual seu nome? 😊')
+    if (choice === 'start') {
+      addMessage('user', 'Vamos começar!')
+      addMessage('assistant', 'Ótimo! Qual seu nome? 😊')
       setStep('name')
     }
   }
@@ -134,7 +91,7 @@ Lead: ${leadData.name}`
     const name = input.trim()
     setLeadData(prev => ({ ...prev, name }))
     addMessage('user', name)
-    addMessage('assistant', `Prazer, ${name}! 👋 Qual seu WhatsApp com DDD?`)
+    addMessage('assistant', `Prazer, ${name}! 👋\n\nQual seu WhatsApp com DDD?`)
     setInput('')
     setStep('phone')
   }
@@ -144,7 +101,7 @@ Lead: ${leadData.name}`
     const phone = input.trim()
     setLeadData(prev => ({ ...prev, phone }))
     addMessage('user', phone)
-    addMessage('assistant', 'Perfeito! Qual seu melhor e-mail?')
+    addMessage('assistant', 'Perfeito! E seu melhor e-mail?')
     setInput('')
     setStep('email')
   }
@@ -152,137 +109,110 @@ Lead: ${leadData.name}`
   const handleEmailSubmit = () => {
     if (!input.trim()) return
     const email = input.trim()
-    const finalData = { ...leadData, email }
-    setLeadData(finalData)
+    setLeadData(prev => ({ ...prev, email }))
     addMessage('user', email)
     
-    localStorage.setItem('iuptec_lead', JSON.stringify(finalData))
-    
-    addMessage('assistant', `Dados salvos, ${finalData.name}! 🎉\n\nAgora me conta: qual sua principal dúvida sobre IA?`)
-    setInput('')
-    setStep('chat')
-    setConversationHistory([])
-    setAiMessageCount(0) // Reset contador
-  }
-
-  const handleChatSubmit = async () => {
-    if (!input.trim() || isLoading) return
-
-    const userMessage = input.trim()
-    addMessage('user', userMessage)
-    setInput('')
-    setIsLoading(true)
-
-    console.log(`📊 Contador ANTES: ${aiMessageCount}/${MAX_AI_MESSAGES}`)
-
-    // Adicionar mensagem do usuário ao histórico
-    const newHistory = [
-      ...conversationHistory,
-      { parts: [{ text: userMessage }] }
-    ]
-
-    try {
-      const aiResponse = await callGeminiAPI(userMessage)
-      
-      if (aiResponse) {
-        // Incrementar contador ANTES de verificar
-        const newCount = aiMessageCount + 1
-        console.log(`📊 Contador DEPOIS: ${newCount}/${MAX_AI_MESSAGES}`)
-        setAiMessageCount(newCount)
-        
-        // Mostrar resposta da IA
-        addMessage('assistant', aiResponse)
-        
-        // Atualizar histórico com resposta da IA
-        const updatedHistory = [
-          ...newHistory,
-          { parts: [{ text: aiResponse }] }
-        ]
-        setConversationHistory(updatedHistory)
-        
-        // Verificar se atingiu limite
-        if (newCount >= MAX_AI_MESSAGES) {
-          console.log('🎯 Limite atingido! Mostrando botões de conversão')
-          setTimeout(() => {
-            addMessage('assistant', 
-              `${leadData.name}, foi ótimo conversar! 😊\n\nPara continuar, escolha:`,
-              null,
-              [
-                { text: '📅 Agendar diagnóstico gratuito', action: 'schedule' },
-                { text: '📱 Falar com especialista agora', action: 'whatsapp' },
-                { text: '🎓 Conhecer Academia (R$ 997)', action: 'academy' }
-              ]
-            )
-            setStep('conversion')
-          }, 500)
-        }
-      } else {
-        // Fallback se API falhar
-        console.log('⚠️ Usando fallback')
-        addMessage('assistant', 
-          `${leadData.name}, tive um problema técnico.\n\n📱 WhatsApp: (31) 98468-3944\n📧 comercial@iuptec.com.br\n\nNossa equipe te ajuda agora!`
-        )
-      }
-    } catch (error) {
-      console.error('❌ Erro geral:', error)
-      addMessage('assistant', 'Erro ao processar. Entre em contato: (31) 98468-3944')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleConversionAction = (action) => {
-    if (action === 'schedule') {
-      addMessage('user', 'Quero agendar diagnóstico')
-      addMessage('assistant', 'Perfeito! Escolha dia e horário:', 'calendar')
-      setStep('calendar')
-    } else if (action === 'whatsapp') {
-      addMessage('user', 'Quero falar com especialista')
-      addMessage('assistant', 
-        `Ótimo! Te conectando:\n\n📱 (31) 98468-3944\n\n👤 ${leadData.name}\n📱 ${leadData.phone}\n📧 ${leadData.email}\n\nVai abrir WhatsApp! 🚀`
-      )
-      setTimeout(() => {
-        window.open(`https://wa.me/5531984683944?text=Olá! Vim do chat. Sou ${leadData.name}`, '_blank')
-      }, 1000)
-    } else if (action === 'academy') {
-      addMessage('user', 'Quero conhecer Academia')
-      addMessage('assistant',
-        `Academia Iuptec IA! 🎓\n\n✨ Do zero ao avançado\n✨ Sem programar\n✨ 6 módulos + projetos\n✨ R$ 997 (12x R$ 97,90)\n\nAgendar conversa?`,
-        null,
-        [
-          { text: '📅 Sim, agendar', action: 'schedule' },
-          { text: '📱 WhatsApp agora', action: 'whatsapp' }
-        ]
-      )
-    }
-  }
-
-  const handleDateSelect = (day) => {
-    setSelectedDate(day)
-    setSelectedTime(null)
-  }
-
-  const handleTimeSelect = (time) => {
-    setSelectedTime(time)
-  }
-
-  const handleConfirmSchedule = () => {
-    if (!selectedDate || !selectedTime) return
-    
-    const dateStr = `${selectedDate.getDate().toString().padStart(2, '0')}/${(selectedDate.getMonth() + 1).toString().padStart(2, '0')}`
-    const scheduleData = {
-      ...leadData,
-      date: dateStr,
-      time: selectedTime,
-      timestamp: new Date().toISOString()
-    }
-    
-    localStorage.setItem('iuptec_schedule', JSON.stringify(scheduleData))
+    localStorage.setItem('iuptec_lead', JSON.stringify({ ...leadData, email }))
     
     addMessage('assistant', 
-      `✅ Agendado!\n\n📅 ${dateStr} às ${selectedTime}\n\nConfirmação no WhatsApp:\n📱 ${leadData.phone}\n\nAté lá! 🚀`
+      'Agora, me conta:\n\nQuantas pessoas trabalham na sua empresa?',
+      [
+        { text: 'Só eu', value: 'solo' },
+        { text: '2-10 pessoas', value: 'pequena' },
+        { text: '11-50 pessoas', value: 'media' },
+        { text: 'Mais de 50', value: 'grande' }
+      ]
     )
-    setStep('done')
+    setInput('')
+    setStep('companySize')
+  }
+
+  const handleCompanySize = (size) => {
+    setLeadData(prev => ({ ...prev, companySize: size }))
+    const sizeText = {
+      'solo': 'Só eu',
+      'pequena': '2-10 pessoas',
+      'media': '11-50 pessoas',
+      'grande': 'Mais de 50'
+    }
+    addMessage('user', sizeText[size])
+    
+    addMessage('assistant',
+      'Sua empresa já usa IA de alguma forma?',
+      [
+        { text: 'Sim, já usamos', value: 'sim' },
+        { text: 'Não, ainda não', value: 'nao' },
+        { text: 'Estamos começando', value: 'comecando' }
+      ]
+    )
+    setStep('hasIA')
+  }
+
+  const handleHasIA = (hasIA) => {
+    setLeadData(prev => ({ ...prev, hasIA }))
+    const hasIAText = {
+      'sim': 'Sim, já usamos',
+      'nao': 'Não, ainda não',
+      'comecando': 'Estamos começando'
+    }
+    addMessage('user', hasIAText[hasIA])
+    
+    addMessage('assistant',
+      'Qual seu principal objetivo?',
+      [
+        { text: '🎓 Aprender IA', value: 'aprender' },
+        { text: '⚡ Automatizar processos', value: 'automatizar' },
+        { text: '🎯 Imersão presencial', value: 'presencial' },
+        { text: '🔧 Solução customizada', value: 'custom' }
+      ]
+    )
+    setStep('goal')
+  }
+
+  const handleGoal = (goal) => {
+    setLeadData(prev => ({ ...prev, goal }))
+    const goalText = {
+      'aprender': '🎓 Aprender IA',
+      'automatizar': '⚡ Automatizar processos',
+      'presencial': '🎯 Imersão presencial',
+      'custom': '🔧 Solução customizada'
+    }
+    addMessage('user', goalText[goal])
+    
+    const finalData = { ...leadData, goal }
+    const recommendation = getRecommendation()
+    
+    setTimeout(() => {
+      addMessage('assistant',
+        `Perfeito, ${leadData.name}! 🎉\n\nBaseado no seu perfil, recomendo:\n\n**${recommendation.product}**\n${recommendation.price}\n\n${recommendation.description}`,
+        [
+          { text: recommendation.cta, action: 'signup' },
+          { text: '💬 Falar no WhatsApp', action: 'whatsapp' }
+        ]
+      )
+      setStep('recommendation')
+    }, 500)
+  }
+
+  const handleAction = (action) => {
+    if (action === 'signup') {
+      addMessage('user', 'Quero começar!')
+      addMessage('assistant',
+        `Ótimo! Vou te redirecionar para criar sua conta.\n\nVocê receberá:\n✅ Acesso imediato\n✅ Onboarding guiado\n✅ Suporte especializado`
+      )
+      setTimeout(() => {
+        // Redirecionar para página de signup
+        window.location.href = '/signup'
+      }, 2000)
+    } else if (action === 'whatsapp') {
+      addMessage('user', 'Prefiro falar no WhatsApp')
+      addMessage('assistant',
+        `Perfeito! Te conectando agora:\n\n📱 (31) 98468-3944\n\n👤 ${leadData.name}\n📱 ${leadData.phone}\n📧 ${leadData.email}`
+      )
+      setTimeout(() => {
+        window.open(`https://wa.me/5531984683944?text=Olá! Sou ${leadData.name}, vim do chat do site`, '_blank')
+      }, 1000)
+    }
   }
 
   const handleKeyPress = (e) => {
@@ -291,33 +221,14 @@ Lead: ${leadData.name}`
       if (step === 'name') handleNameSubmit()
       else if (step === 'phone') handlePhoneSubmit()
       else if (step === 'email') handleEmailSubmit()
-      else if (step === 'chat') handleChatSubmit()
     }
   }
-
-  const generateDays = () => {
-    const days = []
-    const today = new Date()
-    let count = 0
-    let current = new Date(today)
-    
-    while (count < 12) {
-      current.setDate(current.getDate() + 1)
-      const day = current.getDay()
-      if (day !== 0 && day !== 6) {
-        days.push(new Date(current))
-        count++
-      }
-    }
-    return days
-  }
-
-  const availableDays = generateDays()
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
       {isOpen ? (
         <div className="w-[360px] md:w-[420px] h-[600px] rounded-[32px] overflow-hidden flex flex-col shadow-2xl bg-dark-900/95 backdrop-blur-xl border border-white/10 border-b-4 border-b-iuptec-orange">
+          {/* Header */}
           <div className="p-5 bg-gradient-to-r from-dark-900 to-dark-800 text-white flex justify-between items-center border-b border-white/5 flex-shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-br from-iuptec-orange to-yellow-400 rounded-full flex items-center justify-center border border-white/20">
@@ -329,7 +240,7 @@ Lead: ${leadData.name}`
                 </span>
                 <span className="text-[8px] text-iuptec-teal font-bold uppercase tracking-widest flex items-center gap-1">
                   <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
-                  {step === 'chat' ? `${aiMessageCount}/${MAX_AI_MESSAGES} mensagens` : 'Online agora'}
+                  Online agora
                 </span>
               </div>
             </div>
@@ -341,6 +252,7 @@ Lead: ${leadData.name}`
             </button>
           </div>
 
+          {/* Messages */}
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 space-y-4 bg-dark-950/40">
             {messages.map((msg, i) => (
               <div key={i}>
@@ -359,71 +271,20 @@ Lead: ${leadData.name}`
                     {msg.buttons.map((btn, idx) => (
                       <button
                         key={idx}
-                        onClick={() => handleConversionAction(btn.action)}
+                        onClick={() => {
+                          if (btn.value) {
+                            if (step === 'companySize') handleCompanySize(btn.value)
+                            else if (step === 'hasIA') handleHasIA(btn.value)
+                            else if (step === 'goal') handleGoal(btn.value)
+                          } else if (btn.action) {
+                            handleAction(btn.action)
+                          }
+                        }}
                         className="w-full py-3 bg-gradient-to-r from-iuptec-orange to-yellow-400 text-dark-950 rounded-xl font-bold text-sm hover:shadow-lg transition"
                       >
                         {btn.text}
                       </button>
                     ))}
-                  </div>
-                )}
-
-                {msg.type === 'calendar' && step === 'calendar' && (
-                  <div className="mt-4 bg-dark-800/80 backdrop-blur-sm rounded-2xl p-4 border border-white/5">
-                    <div className="mb-4">
-                      <div className="text-xs font-bold text-iuptec-teal mb-2">📅 Escolha o dia:</div>
-                      <div className="grid grid-cols-3 gap-2">
-                        {availableDays.slice(0, 9).map((day, idx) => {
-                          const isSelected = selectedDate?.toDateString() === day.toDateString()
-                          return (
-                            <button
-                              key={idx}
-                              onClick={() => handleDateSelect(day)}
-                              className={`p-2 rounded-lg text-xs font-medium transition ${
-                                isSelected
-                                  ? 'bg-iuptec-orange text-dark-950'
-                                  : 'bg-dark-700/50 text-slate-300 hover:bg-dark-700 border border-white/5'
-                              }`}
-                            >
-                              <div className="font-bold">{day.getDate()}/{day.getMonth() + 1}</div>
-                              <div className="text-[10px] opacity-70">
-                                {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][day.getDay()]}
-                              </div>
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </div>
-
-                    {selectedDate && (
-                      <div className="mb-4">
-                        <div className="text-xs font-bold text-iuptec-teal mb-2">🕒 Horário:</div>
-                        <div className="grid grid-cols-3 gap-2">
-                          {TIME_SLOTS.map((time) => (
-                            <button
-                              key={time}
-                              onClick={() => handleTimeSelect(time)}
-                              className={`p-2 rounded-lg text-xs font-medium transition ${
-                                selectedTime === time
-                                  ? 'bg-iuptec-teal text-dark-950'
-                                  : 'bg-dark-700/50 text-slate-300 hover:bg-dark-700 border border-white/5'
-                              }`}
-                            >
-                              {time}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {selectedDate && selectedTime && (
-                      <button
-                        onClick={handleConfirmSchedule}
-                        className="w-full bg-gradient-to-r from-iuptec-orange to-yellow-400 text-dark-950 py-3 rounded-xl font-bold text-sm hover:shadow-lg transition"
-                      >
-                        Confirmar agendamento
-                      </button>
-                    )}
                   </div>
                 )}
               </div>
@@ -432,57 +293,38 @@ Lead: ${leadData.name}`
             {step === 'initial' && messages.length === 1 && (
               <div className="flex flex-col gap-3 mt-4">
                 <button
-                  onClick={() => handleInitialChoice('resolve')}
+                  onClick={() => handleInitialChoice('start')}
                   className="w-full py-4 bg-gradient-to-br from-iuptec-orange to-yellow-400 text-dark-950 rounded-2xl font-bold text-sm hover:shadow-lg transition"
                 >
-                  Resolver dúvida agora
+                  Descobrir solução ideal
                 </button>
-                <button
-                  onClick={() => handleInitialChoice('schedule')}
-                  className="w-full py-4 bg-dark-800/60 border-2 border-iuptec-teal text-iuptec-teal rounded-2xl font-bold text-sm hover:bg-dark-800 transition"
-                >
-                  Agendar diagnóstico gratuito
-                </button>
-              </div>
-            )}
-
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-dark-800/60 backdrop-blur-sm p-4 rounded-2xl rounded-tl-none border border-white/5">
-                  <span className="flex gap-1.5">
-                    <span className="w-1.5 h-1.5 bg-iuptec-orange rounded-full animate-bounce"></span>
-                    <span className="w-1.5 h-1.5 bg-iuptec-orange rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
-                    <span className="w-1.5 h-1.5 bg-iuptec-orange rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></span>
-                  </span>
-                </div>
               </div>
             )}
           </div>
 
-          {step !== 'initial' && step !== 'calendar' && step !== 'done' && step !== 'conversion' && (
+          {/* Input */}
+          {(step === 'name' || step === 'phone' || step === 'email') && (
             <div className="p-5 border-t border-white/5 flex gap-3 bg-dark-900/20 flex-shrink-0">
               <input
                 type="text"
                 className="flex-grow bg-dark-800/50 border border-white/10 rounded-full px-5 py-3 text-xs text-white focus:outline-none focus:border-iuptec-orange transition-colors placeholder-white/40"
                 placeholder={
                   step === 'name' ? 'Digite seu nome...' :
-                  step === 'phone' ? 'Digite seu WhatsApp...' :
-                  step === 'email' ? 'Digite seu e-mail...' :
-                  'Digite sua mensagem...'
+                  step === 'phone' ? '(99) 99999-9999' :
+                  'seu@email.com'
                 }
                 value={step === 'phone' ? formatPhone(input) : input}
                 onChange={e => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
-                disabled={isLoading}
+                autoFocus
               />
               <button
                 onClick={() => {
                   if (step === 'name') handleNameSubmit()
                   else if (step === 'phone') handlePhoneSubmit()
                   else if (step === 'email') handleEmailSubmit()
-                  else if (step === 'chat') handleChatSubmit()
                 }}
-                disabled={isLoading || !input.trim()}
+                disabled={!input.trim()}
                 className="w-12 h-12 bg-gradient-to-br from-iuptec-orange to-yellow-400 rounded-full flex items-center justify-center text-dark-950 transition-all transform active:scale-90 shadow-lg disabled:opacity-50"
               >
                 ➤

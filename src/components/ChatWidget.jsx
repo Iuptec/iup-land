@@ -1,7 +1,9 @@
-// ChatWidget.jsx - VERSÃO FINAL COM GEMINI + LIMITE + CONVERSÃO
+// ChatWidget.jsx - VERSÃO MELHORADA - Gemini 2.5 Flash
+// Corrigido: token limit, contador, system prompt
+
 import { useState, useRef, useEffect } from 'react'
 
-const MAX_AI_MESSAGES = 5 // Limite de mensagens com IA
+const MAX_AI_MESSAGES = 5
 
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false)
@@ -43,61 +45,30 @@ export default function ChatWidget() {
   const callGeminiAPI = async (userMessage) => {
     const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'AIzaSyCHur_wLAIlB6hCfQn1lSbaqguhVOOKw6Y'
     
-    const systemPrompt = `Você é o assistente virtual da Iuptec, empresa com 30+ anos de experiência que oferece soluções de IA.
+    // System prompt melhorado e conciso
+    const systemPrompt = `Você é o assistente da Iuptec (30+ anos, especialista em IA para PMEs).
 
-OBJETIVO: Qualificar o lead e direcionar para conversão em até 5 mensagens.
+OBJETIVO: Qualificar e converter em 5 mensagens.
 
-INFORMAÇÕES IUPTEC:
-- 30+ anos criando empresas de sucesso
-- Produtos: BEM (marketplace), Iupcont (ERP), IUPSign (EXIT), IUPCare
-- Agora focados em IA acessível para PMEs
+SOLUÇÕES IUPTEC:
+1. Custom IA - Agentes sob medida
+2. Automações - R$ 2.997+ (implementação rápida)
+3. Academia IA - R$ 997 (do zero ao pro)
 
-SOLUÇÕES (SEMPRE MENCIONAR):
-1. **Desenvolvimento Custom de IA** - Agentes integrados, APIs OpenAI/Claude, Make/n8n
-   → Para empresas que precisam solução sob medida
-   
-2. **Automações Prontas (Plug & Play)** - A partir de R$ 2.997
-   → Atendimento 24/7, qualificação leads, suporte técnico
-   → Implementação em HORAS, não meses
-   
-3. **Academia Iuptec IA** - R$ 997 (12x R$ 97,90)
-   → Do zero ao avançado sem programar
-   → 6 módulos + projetos reais + certificado
+ESTRATÉGIA (${aiMessageCount + 1}/5):
+Msg 1-2: Entender + apresentar solução
+Msg 3-4: Benefícios + preços + cases (80% atendimento automatizado)
+Msg 4-5: CTA forte (agendar diagnóstico)
 
-DIFERENCIAIS (MENCIONAR):
-- 30+ anos de experiência real
-- Preços justos (não somos caros!)
-- Cases reais: 80% atendimento automatizado, 40% mais produtividade
-- Atendimento regional (Triângulo Mineiro/BH)
+ESTILO:
+- Máximo 3 parágrafos curtos
+- Objetivo e direto
+- Foco em resultados
+- Perguntas que direcionam
 
-ESTRATÉGIA DE CONVERSA:
-1ª msg: Entender necessidade
-2ª msg: Apresentar solução específica
-3ª msg: Mostrar benefícios/cases
-4ª msg: Direcionar para conversão
-5ª msg: Reforçar call-to-action
+Lead: ${leadData.name}`
 
-CALLS-TO-ACTION (usar após 3-4 msgs):
-- "Quer agendar um diagnóstico gratuito?"
-- "Posso te conectar com nossa equipe agora?"
-- "A Academia pode ser perfeita pra você, quer conhecer?"
-
-IMPORTANTE:
-- Seja OBJETIVO (2-3 parágrafos máximo)
-- Use emojis moderadamente (1-2 por msg)
-- SEMPRE direcione para produto específico
-- Foque em RESULTADOS, não em tecnologia
-- Mencione preços quando relevante
-- Crie senso de urgência suave
-
-NUNCA:
-- Faça promessas irreais
-- Fale mal de concorrentes
-- Seja genérico demais
-- Responda coisas fora do escopo Iuptec
-
-Lead atual: ${leadData.name}
-Mensagem ${aiMessageCount + 1}/5`
+    console.log(`🤖 Chamando Gemini (mensagem ${aiMessageCount + 1}/${MAX_AI_MESSAGES})`)
 
     try {
       const response = await fetch(
@@ -106,33 +77,42 @@ Mensagem ${aiMessageCount + 1}/5`
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            systemInstruction: {
+              parts: [{ text: systemPrompt }]
+            },
             contents: [
-              {
-                role: 'user',
-                parts: [{ text: systemPrompt }]
-              },
               ...conversationHistory,
               {
-                role: 'user',
                 parts: [{ text: userMessage }]
               }
             ],
             generationConfig: {
-              temperature: 0.7,
-              maxOutputTokens: 300, // Respostas concisas
+              temperature: 0.8,
+              maxOutputTokens: 800, // Aumentado de 300
+              topP: 0.95,
             }
           })
         }
       )
 
       if (!response.ok) {
-        throw new Error('Gemini API error')
+        const errorData = await response.json()
+        console.error('❌ Gemini API error:', errorData)
+        throw new Error(`API error: ${response.status}`)
       }
 
       const data = await response.json()
-      return data.candidates[0]?.content?.parts[0]?.text || null
+      console.log('✅ Gemini resposta recebida')
+      
+      const aiText = data.candidates[0]?.content?.parts[0]?.text
+      if (!aiText) {
+        console.error('❌ Resposta vazia da IA')
+        return null
+      }
+      
+      return aiText
     } catch (error) {
-      console.error('Gemini error:', error)
+      console.error('❌ Erro ao chamar Gemini:', error)
       return null
     }
   }
@@ -178,10 +158,11 @@ Mensagem ${aiMessageCount + 1}/5`
     
     localStorage.setItem('iuptec_lead', JSON.stringify(finalData))
     
-    addMessage('assistant', `Dados salvos, ${finalData.name}! 🎉\n\nAgora me conta: qual sua principal dúvida ou desafio com IA?`)
+    addMessage('assistant', `Dados salvos, ${finalData.name}! 🎉\n\nAgora me conta: qual sua principal dúvida sobre IA?`)
     setInput('')
     setStep('chat')
     setConversationHistory([])
+    setAiMessageCount(0) // Reset contador
   }
 
   const handleChatSubmit = async () => {
@@ -192,56 +173,59 @@ Mensagem ${aiMessageCount + 1}/5`
     setInput('')
     setIsLoading(true)
 
-    // Atualizar histórico
+    console.log(`📊 Contador ANTES: ${aiMessageCount}/${MAX_AI_MESSAGES}`)
+
+    // Adicionar mensagem do usuário ao histórico
     const newHistory = [
       ...conversationHistory,
-      {
-        role: 'user',
-        parts: [{ text: userMessage }]
-      }
+      { parts: [{ text: userMessage }] }
     ]
-    setConversationHistory(newHistory)
 
     try {
       const aiResponse = await callGeminiAPI(userMessage)
       
       if (aiResponse) {
+        // Incrementar contador ANTES de verificar
         const newCount = aiMessageCount + 1
+        console.log(`📊 Contador DEPOIS: ${newCount}/${MAX_AI_MESSAGES}`)
         setAiMessageCount(newCount)
         
-        // Se atingiu limite, adicionar botões de conversão
+        // Mostrar resposta da IA
+        addMessage('assistant', aiResponse)
+        
+        // Atualizar histórico com resposta da IA
+        const updatedHistory = [
+          ...newHistory,
+          { parts: [{ text: aiResponse }] }
+        ]
+        setConversationHistory(updatedHistory)
+        
+        // Verificar se atingiu limite
         if (newCount >= MAX_AI_MESSAGES) {
-          addMessage('assistant', aiResponse)
-          addMessage('assistant', 
-            `${leadData.name}, aproveitei muito nossa conversa! 😊\n\nPara continuar te ajudando da melhor forma, escolha uma opção:`,
-            null,
-            [
-              { text: '📅 Agendar diagnóstico gratuito', action: 'schedule' },
-              { text: '📱 Falar com especialista', action: 'whatsapp' },
-              { text: '🎓 Conhecer Academia (R$ 997)', action: 'academy' }
-            ]
-          )
-          setStep('conversion')
-        } else {
-          addMessage('assistant', aiResponse)
-          
-          // Atualizar histórico com resposta da IA
-          setConversationHistory([
-            ...newHistory,
-            {
-              role: 'model',
-              parts: [{ text: aiResponse }]
-            }
-          ])
+          console.log('🎯 Limite atingido! Mostrando botões de conversão')
+          setTimeout(() => {
+            addMessage('assistant', 
+              `${leadData.name}, foi ótimo conversar! 😊\n\nPara continuar, escolha:`,
+              null,
+              [
+                { text: '📅 Agendar diagnóstico gratuito', action: 'schedule' },
+                { text: '📱 Falar com especialista agora', action: 'whatsapp' },
+                { text: '🎓 Conhecer Academia (R$ 997)', action: 'academy' }
+              ]
+            )
+            setStep('conversion')
+          }, 500)
         }
       } else {
-        // Fallback se Gemini falhar
+        // Fallback se API falhar
+        console.log('⚠️ Usando fallback')
         addMessage('assistant', 
-          `Desculpe, tive um problema técnico. Mas posso te ajudar:\n\n📱 WhatsApp: (31) 98468-3944\n📧 comercial@iuptec.com.br`
+          `${leadData.name}, tive um problema técnico.\n\n📱 WhatsApp: (31) 98468-3944\n📧 comercial@iuptec.com.br\n\nNossa equipe te ajuda agora!`
         )
       }
     } catch (error) {
-      addMessage('assistant', 'Erro ao processar. Tente novamente ou fale conosco no WhatsApp: (31) 98468-3944')
+      console.error('❌ Erro geral:', error)
+      addMessage('assistant', 'Erro ao processar. Entre em contato: (31) 98468-3944')
     } finally {
       setIsLoading(false)
     }
@@ -250,24 +234,24 @@ Mensagem ${aiMessageCount + 1}/5`
   const handleConversionAction = (action) => {
     if (action === 'schedule') {
       addMessage('user', 'Quero agendar diagnóstico')
-      addMessage('assistant', 'Perfeito! Escolha o melhor dia e horário:', 'calendar')
+      addMessage('assistant', 'Perfeito! Escolha dia e horário:', 'calendar')
       setStep('calendar')
     } else if (action === 'whatsapp') {
       addMessage('user', 'Quero falar com especialista')
       addMessage('assistant', 
-        `Ótimo! Vou te conectar agora:\n\n📱 WhatsApp: (31) 98468-3944\n\nJá tenho seus dados aqui:\n👤 ${leadData.name}\n📱 ${leadData.phone}\n📧 ${leadData.email}\n\nNossa equipe vai te atender rapidinho! 😊`
+        `Ótimo! Te conectando:\n\n📱 (31) 98468-3944\n\n👤 ${leadData.name}\n📱 ${leadData.phone}\n📧 ${leadData.email}\n\nVai abrir WhatsApp! 🚀`
       )
       setTimeout(() => {
-        window.open(`https://wa.me/5531984683944?text=Olá! Vim do chat. Meu nome é ${leadData.name}`, '_blank')
+        window.open(`https://wa.me/5531984683944?text=Olá! Vim do chat. Sou ${leadData.name}`, '_blank')
       }, 1000)
     } else if (action === 'academy') {
-      addMessage('user', 'Quero conhecer a Academia')
+      addMessage('user', 'Quero conhecer Academia')
       addMessage('assistant',
-        `A Academia Iuptec IA é perfeita pra você! 🎓\n\n✨ Do Zero ao Pro em IA\n✨ Sem programar\n✨ 6 módulos completos\n✨ Projetos reais\n✨ Certificado\n\n💰 R$ 997 (12x R$ 97,90)\n\nVamos agendar uma conversa pra eu te explicar tudo?`,
+        `Academia Iuptec IA! 🎓\n\n✨ Do zero ao avançado\n✨ Sem programar\n✨ 6 módulos + projetos\n✨ R$ 997 (12x R$ 97,90)\n\nAgendar conversa?`,
         null,
         [
-          { text: '📅 Sim, agendar conversa', action: 'schedule' },
-          { text: '📱 Falar agora no WhatsApp', action: 'whatsapp' }
+          { text: '📅 Sim, agendar', action: 'schedule' },
+          { text: '📱 WhatsApp agora', action: 'whatsapp' }
         ]
       )
     }
@@ -296,7 +280,7 @@ Mensagem ${aiMessageCount + 1}/5`
     localStorage.setItem('iuptec_schedule', JSON.stringify(scheduleData))
     
     addMessage('assistant', 
-      `✅ Agendamento confirmado!\n\n📅 ${dateStr} às ${selectedTime}\n\n${leadData.name}, vamos confirmar por WhatsApp:\n📱 ${leadData.phone}\n\nAté breve! 🚀`
+      `✅ Agendado!\n\n📅 ${dateStr} às ${selectedTime}\n\nConfirmação no WhatsApp:\n📱 ${leadData.phone}\n\nAté lá! 🚀`
     )
     setStep('done')
   }
@@ -334,7 +318,6 @@ Mensagem ${aiMessageCount + 1}/5`
     <div className="fixed bottom-6 right-6 z-50">
       {isOpen ? (
         <div className="w-[360px] md:w-[420px] h-[600px] rounded-[32px] overflow-hidden flex flex-col shadow-2xl bg-dark-900/95 backdrop-blur-xl border border-white/10 border-b-4 border-b-iuptec-orange">
-          {/* Header */}
           <div className="p-5 bg-gradient-to-r from-dark-900 to-dark-800 text-white flex justify-between items-center border-b border-white/5 flex-shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-br from-iuptec-orange to-yellow-400 rounded-full flex items-center justify-center border border-white/20">
@@ -346,8 +329,7 @@ Mensagem ${aiMessageCount + 1}/5`
                 </span>
                 <span className="text-[8px] text-iuptec-teal font-bold uppercase tracking-widest flex items-center gap-1">
                   <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
-                  {step === 'chat' && aiMessageCount < MAX_AI_MESSAGES ? 
-                    `${aiMessageCount}/${MAX_AI_MESSAGES} mensagens` : 'Online agora'}
+                  {step === 'chat' ? `${aiMessageCount}/${MAX_AI_MESSAGES} mensagens` : 'Online agora'}
                 </span>
               </div>
             </div>
@@ -359,7 +341,6 @@ Mensagem ${aiMessageCount + 1}/5`
             </button>
           </div>
 
-          {/* Messages */}
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 space-y-4 bg-dark-950/40">
             {messages.map((msg, i) => (
               <div key={i}>
@@ -373,7 +354,6 @@ Mensagem ${aiMessageCount + 1}/5`
                   </div>
                 </div>
 
-                {/* Botões de ação */}
                 {msg.buttons && (
                   <div className="flex flex-col gap-2 mt-3">
                     {msg.buttons.map((btn, idx) => (
@@ -388,7 +368,6 @@ Mensagem ${aiMessageCount + 1}/5`
                   </div>
                 )}
 
-                {/* Calendário */}
                 {msg.type === 'calendar' && step === 'calendar' && (
                   <div className="mt-4 bg-dark-800/80 backdrop-blur-sm rounded-2xl p-4 border border-white/5">
                     <div className="mb-4">
@@ -418,7 +397,7 @@ Mensagem ${aiMessageCount + 1}/5`
 
                     {selectedDate && (
                       <div className="mb-4">
-                        <div className="text-xs font-bold text-iuptec-teal mb-2">🕒 Escolha o horário:</div>
+                        <div className="text-xs font-bold text-iuptec-teal mb-2">🕒 Horário:</div>
                         <div className="grid grid-cols-3 gap-2">
                           {TIME_SLOTS.map((time) => (
                             <button
@@ -450,7 +429,6 @@ Mensagem ${aiMessageCount + 1}/5`
               </div>
             ))}
 
-            {/* Botões iniciais */}
             {step === 'initial' && messages.length === 1 && (
               <div className="flex flex-col gap-3 mt-4">
                 <button
@@ -481,7 +459,6 @@ Mensagem ${aiMessageCount + 1}/5`
             )}
           </div>
 
-          {/* Input */}
           {step !== 'initial' && step !== 'calendar' && step !== 'done' && step !== 'conversion' && (
             <div className="p-5 border-t border-white/5 flex gap-3 bg-dark-900/20 flex-shrink-0">
               <input

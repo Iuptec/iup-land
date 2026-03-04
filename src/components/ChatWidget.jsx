@@ -41,7 +41,7 @@ export default function ChatWidget() {
   }
 
   const callGeminiAPI = async (userMessage) => {
-    const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'AIzaSyADzvYLSbt6s3Ug7SYTcftQdD6X8qXNt0Q'
+    const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'YOUR_KEY_HERE'
     
     const systemPrompt = `Você é o assistente virtual da Iuptec, empresa com 30+ anos de experiência que oferece soluções de IA.
 
@@ -101,7 +101,7 @@ Mensagem ${aiMessageCount + 1}/5`
 
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

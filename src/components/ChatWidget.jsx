@@ -1,32 +1,27 @@
-// ChatWidget.jsx - COMPLETO COM CALENDÁRIO
+// ChatWidget.jsx - VERSÃO FINAL COM GEMINI + LIMITE + CONVERSÃO
 import { useState, useRef, useEffect } from 'react'
+
+const MAX_AI_MESSAGES = 5 // Limite de mensagens com IA
 
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false)
-  const [step, setStep] = useState('initial') // initial, name, phone, email, intent, chat, calendar, done
-  const [intent, setIntent] = useState(null) // 'resolve' ou 'schedule'
-  const [leadData, setLeadData] = useState({
-    name: '',
-    phone: '',
-    email: ''
-  })
+  const [step, setStep] = useState('initial')
+  const [leadData, setLeadData] = useState({ name: '', phone: '', email: '' })
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
       content: 'Olá! 👋 Sou o Assistente da Iuptec. Como posso te ajudar hoje?',
-      timestamp: new Date()
     }
   ])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [aiMessageCount, setAiMessageCount] = useState(0)
+  const [conversationHistory, setConversationHistory] = useState([])
   const [selectedDate, setSelectedDate] = useState(null)
   const [selectedTime, setSelectedTime] = useState(null)
   const scrollRef = useRef(null)
 
-  const TIME_SLOTS = [
-    '10:00', '10:30', '11:00', '11:30',
-    '14:00', '14:30', '15:00', '15:30', '16:00'
-  ]
+  const TIME_SLOTS = ['10:00', '10:30', '11:00', '11:30', '14:00', '14:30', '15:00', '15:30', '16:00']
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -34,13 +29,8 @@ export default function ChatWidget() {
     }
   }, [messages])
 
-  const addMessage = (role, content, type = null) => {
-    setMessages(prev => [...prev, { 
-      role, 
-      content, 
-      type,
-      timestamp: new Date() 
-    }])
+  const addMessage = (role, content, type = null, buttons = null) => {
+    setMessages(prev => [...prev, { role, content, type, buttons }])
   }
 
   const formatPhone = (value) => {
@@ -50,43 +40,117 @@ export default function ChatWidget() {
     return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
   }
 
-  const getSmartResponse = (userMessage) => {
-    const msg = userMessage.toLowerCase()
+  const callGeminiAPI = async (userMessage) => {
+    const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'AIzaSyADzvYLSbt6s3Ug7SYTcftQdD6X8qXNt0Q'
     
-    if (msg.includes('serviço') || msg.includes('solução') || msg.includes('o que fazem')) {
-      return `Perfeito, ${leadData.name}! 🚀\n\nOferecemos 3 soluções:\n\n1️⃣ Desenvolvimento Custom de IA\n2️⃣ Automações Plug & Play (implementar em horas)\n3️⃣ Academia Iuptec IA - R$ 997\n\nQual te interessa?`
+    const systemPrompt = `Você é o assistente virtual da Iuptec, empresa com 30+ anos de experiência que oferece soluções de IA.
+
+OBJETIVO: Qualificar o lead e direcionar para conversão em até 5 mensagens.
+
+INFORMAÇÕES IUPTEC:
+- 30+ anos criando empresas de sucesso
+- Produtos: BEM (marketplace), Iupcont (ERP), IUPSign (EXIT), IUPCare
+- Agora focados em IA acessível para PMEs
+
+SOLUÇÕES (SEMPRE MENCIONAR):
+1. **Desenvolvimento Custom de IA** - Agentes integrados, APIs OpenAI/Claude, Make/n8n
+   → Para empresas que precisam solução sob medida
+   
+2. **Automações Prontas (Plug & Play)** - A partir de R$ 2.997
+   → Atendimento 24/7, qualificação leads, suporte técnico
+   → Implementação em HORAS, não meses
+   
+3. **Academia Iuptec IA** - R$ 997 (12x R$ 97,90)
+   → Do zero ao avançado sem programar
+   → 6 módulos + projetos reais + certificado
+
+DIFERENCIAIS (MENCIONAR):
+- 30+ anos de experiência real
+- Preços justos (não somos caros!)
+- Cases reais: 80% atendimento automatizado, 40% mais produtividade
+- Atendimento regional (Triângulo Mineiro/BH)
+
+ESTRATÉGIA DE CONVERSA:
+1ª msg: Entender necessidade
+2ª msg: Apresentar solução específica
+3ª msg: Mostrar benefícios/cases
+4ª msg: Direcionar para conversão
+5ª msg: Reforçar call-to-action
+
+CALLS-TO-ACTION (usar após 3-4 msgs):
+- "Quer agendar um diagnóstico gratuito?"
+- "Posso te conectar com nossa equipe agora?"
+- "A Academia pode ser perfeita pra você, quer conhecer?"
+
+IMPORTANTE:
+- Seja OBJETIVO (2-3 parágrafos máximo)
+- Use emojis moderadamente (1-2 por msg)
+- SEMPRE direcione para produto específico
+- Foque em RESULTADOS, não em tecnologia
+- Mencione preços quando relevante
+- Crie senso de urgência suave
+
+NUNCA:
+- Faça promessas irreais
+- Fale mal de concorrentes
+- Seja genérico demais
+- Responda coisas fora do escopo Iuptec
+
+Lead atual: ${leadData.name}
+Mensagem ${aiMessageCount + 1}/5`
+
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: 'user',
+                parts: [{ text: systemPrompt }]
+              },
+              ...conversationHistory,
+              {
+                role: 'user',
+                parts: [{ text: userMessage }]
+              }
+            ],
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 300, // Respostas concisas
+            }
+          })
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error('Gemini API error')
+      }
+
+      const data = await response.json()
+      return data.candidates[0]?.content?.parts[0]?.text || null
+    } catch (error) {
+      console.error('Gemini error:', error)
+      return null
     }
-    
-    if (msg.includes('preço') || msg.includes('valor') || msg.includes('quanto')) {
-      return `Ótima pergunta! 💰\n\n💼 Academia: R$ 997 (12x R$ 97,90)\n⚡ Automações: A partir de R$ 2.997\n🎯 Custom: Sob consulta\n\nQuer um diagnóstico gratuito?`
-    }
-    
-    if (msg.includes('curso') || msg.includes('academia')) {
-      return `A Academia Iuptec IA é perfeita! 🎓\n\n✨ Do Zero ao Pro\n✨ Sem programação\n✨ 6 módulos + projetos reais\n✨ R$ 997\n\nVamos conversar sobre?`
-    }
-    
-    if (msg.includes('automação') || msg.includes('automatizar')) {
-      return `Nossas automações são rápidas! ⚡\n\n✅ Atendimento 24/7\n✅ Qualificação de leads\n✅ Suporte técnico\n\nAutomatizamos 80% do atendimento! Quer conhecer?`
-    }
-    
-    return `Legal, ${leadData.name}! Para te ajudar melhor:\n\n📱 WhatsApp: (31) 98468-3944\n📧 comercial@iuptec.com.br\n\nOu posso agendar uma conversa pra você!`
   }
 
   const handleInitialChoice = (choice) => {
-    setIntent(choice)
     if (choice === 'resolve') {
       addMessage('user', 'Quero resolver minha dúvida agora')
       addMessage('assistant', 'Ótimo! Primeiro, como posso te chamar? 😊')
+      setStep('name')
     } else {
       addMessage('user', 'Quero agendar diagnóstico gratuito')
-      addMessage('assistant', 'Perfeito! Vamos agendar. Qual seu nome? 😊')
+      addMessage('assistant', 'Perfeito! Qual seu nome? 😊')
+      setStep('name')
     }
-    setStep('name')
   }
 
   const handleNameSubmit = () => {
     if (!input.trim()) return
-    
     const name = input.trim()
     setLeadData(prev => ({ ...prev, name }))
     addMessage('user', name)
@@ -97,37 +161,30 @@ export default function ChatWidget() {
 
   const handlePhoneSubmit = () => {
     if (!input.trim()) return
-    
     const phone = input.trim()
     setLeadData(prev => ({ ...prev, phone }))
     addMessage('user', phone)
-    addMessage('assistant', `Perfeito! Qual seu melhor e-mail?`)
+    addMessage('assistant', 'Perfeito! Qual seu melhor e-mail?')
     setInput('')
     setStep('email')
   }
 
   const handleEmailSubmit = () => {
     if (!input.trim()) return
-    
     const email = input.trim()
     const finalData = { ...leadData, email }
     setLeadData(finalData)
     addMessage('user', email)
     
-    // Salvar lead
     localStorage.setItem('iuptec_lead', JSON.stringify(finalData))
     
-    if (intent === 'schedule') {
-      addMessage('assistant', `Obrigado, ${finalData.name}! 📅\n\nAgora escolha a melhor data e horário:`, 'calendar')
-      setStep('calendar')
-    } else {
-      addMessage('assistant', `Dados salvos! 🎉\n\nAgora me conta: como posso te ajudar?`)
-      setStep('chat')
-    }
+    addMessage('assistant', `Dados salvos, ${finalData.name}! 🎉\n\nAgora me conta: qual sua principal dúvida ou desafio com IA?`)
     setInput('')
+    setStep('chat')
+    setConversationHistory([])
   }
 
-  const handleChatSubmit = () => {
+  const handleChatSubmit = async () => {
     if (!input.trim() || isLoading) return
 
     const userMessage = input.trim()
@@ -135,11 +192,85 @@ export default function ChatWidget() {
     setInput('')
     setIsLoading(true)
 
-    setTimeout(() => {
-      const response = getSmartResponse(userMessage)
-      addMessage('assistant', response)
+    // Atualizar histórico
+    const newHistory = [
+      ...conversationHistory,
+      {
+        role: 'user',
+        parts: [{ text: userMessage }]
+      }
+    ]
+    setConversationHistory(newHistory)
+
+    try {
+      const aiResponse = await callGeminiAPI(userMessage)
+      
+      if (aiResponse) {
+        const newCount = aiMessageCount + 1
+        setAiMessageCount(newCount)
+        
+        // Se atingiu limite, adicionar botões de conversão
+        if (newCount >= MAX_AI_MESSAGES) {
+          addMessage('assistant', aiResponse)
+          addMessage('assistant', 
+            `${leadData.name}, aproveitei muito nossa conversa! 😊\n\nPara continuar te ajudando da melhor forma, escolha uma opção:`,
+            null,
+            [
+              { text: '📅 Agendar diagnóstico gratuito', action: 'schedule' },
+              { text: '📱 Falar com especialista', action: 'whatsapp' },
+              { text: '🎓 Conhecer Academia (R$ 997)', action: 'academy' }
+            ]
+          )
+          setStep('conversion')
+        } else {
+          addMessage('assistant', aiResponse)
+          
+          // Atualizar histórico com resposta da IA
+          setConversationHistory([
+            ...newHistory,
+            {
+              role: 'model',
+              parts: [{ text: aiResponse }]
+            }
+          ])
+        }
+      } else {
+        // Fallback se Gemini falhar
+        addMessage('assistant', 
+          `Desculpe, tive um problema técnico. Mas posso te ajudar:\n\n📱 WhatsApp: (31) 98468-3944\n📧 comercial@iuptec.com.br`
+        )
+      }
+    } catch (error) {
+      addMessage('assistant', 'Erro ao processar. Tente novamente ou fale conosco no WhatsApp: (31) 98468-3944')
+    } finally {
       setIsLoading(false)
-    }, 1000)
+    }
+  }
+
+  const handleConversionAction = (action) => {
+    if (action === 'schedule') {
+      addMessage('user', 'Quero agendar diagnóstico')
+      addMessage('assistant', 'Perfeito! Escolha o melhor dia e horário:', 'calendar')
+      setStep('calendar')
+    } else if (action === 'whatsapp') {
+      addMessage('user', 'Quero falar com especialista')
+      addMessage('assistant', 
+        `Ótimo! Vou te conectar agora:\n\n📱 WhatsApp: (31) 98468-3944\n\nJá tenho seus dados aqui:\n👤 ${leadData.name}\n📱 ${leadData.phone}\n📧 ${leadData.email}\n\nNossa equipe vai te atender rapidinho! 😊`
+      )
+      setTimeout(() => {
+        window.open(`https://wa.me/5531984683944?text=Olá! Vim do chat. Meu nome é ${leadData.name}`, '_blank')
+      }, 1000)
+    } else if (action === 'academy') {
+      addMessage('user', 'Quero conhecer a Academia')
+      addMessage('assistant',
+        `A Academia Iuptec IA é perfeita pra você! 🎓\n\n✨ Do Zero ao Pro em IA\n✨ Sem programar\n✨ 6 módulos completos\n✨ Projetos reais\n✨ Certificado\n\n💰 R$ 997 (12x R$ 97,90)\n\nVamos agendar uma conversa pra eu te explicar tudo?`,
+        null,
+        [
+          { text: '📅 Sim, agendar conversa', action: 'schedule' },
+          { text: '📱 Falar agora no WhatsApp', action: 'whatsapp' }
+        ]
+      )
+    }
   }
 
   const handleDateSelect = (day) => {
@@ -162,10 +293,11 @@ export default function ChatWidget() {
       timestamp: new Date().toISOString()
     }
     
-    // Salvar agendamento
     localStorage.setItem('iuptec_schedule', JSON.stringify(scheduleData))
     
-    addMessage('assistant', `✅ Agendamento confirmado!\n\n📅 Data: ${dateStr}\n🕒 Horário: ${selectedTime}\n\nNosso time vai te confirmar por WhatsApp: ${leadData.phone}\n\nAté breve! 😊`)
+    addMessage('assistant', 
+      `✅ Agendamento confirmado!\n\n📅 ${dateStr} às ${selectedTime}\n\n${leadData.name}, vamos confirmar por WhatsApp:\n📱 ${leadData.phone}\n\nAté breve! 🚀`
+    )
     setStep('done')
   }
 
@@ -179,17 +311,15 @@ export default function ChatWidget() {
     }
   }
 
-  // Gerar calendário simples (próximos 14 dias úteis)
   const generateDays = () => {
     const days = []
     const today = new Date()
     let count = 0
     let current = new Date(today)
     
-    while (count < 14) {
+    while (count < 12) {
       current.setDate(current.getDate() + 1)
       const day = current.getDay()
-      // Pular finais de semana
       if (day !== 0 && day !== 6) {
         days.push(new Date(current))
         count++
@@ -216,7 +346,8 @@ export default function ChatWidget() {
                 </span>
                 <span className="text-[8px] text-iuptec-teal font-bold uppercase tracking-widest flex items-center gap-1">
                   <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
-                  Online agora
+                  {step === 'chat' && aiMessageCount < MAX_AI_MESSAGES ? 
+                    `${aiMessageCount}/${MAX_AI_MESSAGES} mensagens` : 'Online agora'}
                 </span>
               </div>
             </div>
@@ -229,10 +360,7 @@ export default function ChatWidget() {
           </div>
 
           {/* Messages */}
-          <div 
-            ref={scrollRef}
-            className="flex-1 overflow-y-auto p-5 space-y-4 bg-dark-950/40"
-          >
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 space-y-4 bg-dark-950/40">
             {messages.map((msg, i) => (
               <div key={i}>
                 <div className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -245,14 +373,26 @@ export default function ChatWidget() {
                   </div>
                 </div>
 
-                {/* Calendar inline */}
+                {/* Botões de ação */}
+                {msg.buttons && (
+                  <div className="flex flex-col gap-2 mt-3">
+                    {msg.buttons.map((btn, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => handleConversionAction(btn.action)}
+                        className="w-full py-3 bg-gradient-to-r from-iuptec-orange to-yellow-400 text-dark-950 rounded-xl font-bold text-sm hover:shadow-lg transition"
+                      >
+                        {btn.text}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Calendário */}
                 {msg.type === 'calendar' && step === 'calendar' && (
                   <div className="mt-4 bg-dark-800/80 backdrop-blur-sm rounded-2xl p-4 border border-white/5">
-                    {/* Days */}
                     <div className="mb-4">
-                      <div className="text-xs font-bold text-iuptec-teal mb-2 flex items-center gap-2">
-                        📅 Escolha o dia:
-                      </div>
+                      <div className="text-xs font-bold text-iuptec-teal mb-2">📅 Escolha o dia:</div>
                       <div className="grid grid-cols-3 gap-2">
                         {availableDays.slice(0, 9).map((day, idx) => {
                           const isSelected = selectedDate?.toDateString() === day.toDateString()
@@ -276,34 +416,27 @@ export default function ChatWidget() {
                       </div>
                     </div>
 
-                    {/* Times */}
                     {selectedDate && (
                       <div className="mb-4">
-                        <div className="text-xs font-bold text-iuptec-teal mb-2 flex items-center gap-2">
-                          🕒 Escolha o horário:
-                        </div>
+                        <div className="text-xs font-bold text-iuptec-teal mb-2">🕒 Escolha o horário:</div>
                         <div className="grid grid-cols-3 gap-2">
-                          {TIME_SLOTS.map((time) => {
-                            const isSelected = selectedTime === time
-                            return (
-                              <button
-                                key={time}
-                                onClick={() => handleTimeSelect(time)}
-                                className={`p-2 rounded-lg text-xs font-medium transition ${
-                                  isSelected
-                                    ? 'bg-iuptec-teal text-dark-950'
-                                    : 'bg-dark-700/50 text-slate-300 hover:bg-dark-700 border border-white/5'
-                                }`}
-                              >
-                                {time}
-                              </button>
-                            )
-                          })}
+                          {TIME_SLOTS.map((time) => (
+                            <button
+                              key={time}
+                              onClick={() => handleTimeSelect(time)}
+                              className={`p-2 rounded-lg text-xs font-medium transition ${
+                                selectedTime === time
+                                  ? 'bg-iuptec-teal text-dark-950'
+                                  : 'bg-dark-700/50 text-slate-300 hover:bg-dark-700 border border-white/5'
+                              }`}
+                            >
+                              {time}
+                            </button>
+                          ))}
                         </div>
                       </div>
                     )}
 
-                    {/* Confirm */}
                     {selectedDate && selectedTime && (
                       <button
                         onClick={handleConfirmSchedule}
@@ -317,7 +450,7 @@ export default function ChatWidget() {
               </div>
             ))}
 
-            {/* Initial buttons */}
+            {/* Botões iniciais */}
             {step === 'initial' && messages.length === 1 && (
               <div className="flex flex-col gap-3 mt-4">
                 <button
@@ -349,7 +482,7 @@ export default function ChatWidget() {
           </div>
 
           {/* Input */}
-          {step !== 'initial' && step !== 'calendar' && step !== 'done' && (
+          {step !== 'initial' && step !== 'calendar' && step !== 'done' && step !== 'conversion' && (
             <div className="p-5 border-t border-white/5 flex gap-3 bg-dark-900/20 flex-shrink-0">
               <input
                 type="text"

@@ -1,351 +1,89 @@
-// ChatWidget.jsx - LÓGICA SIMPLES (SEM IA)
-import { useState, useRef, useEffect } from 'react'
+import { useState } from 'react';
+import { MessageCircle, X, ArrowRight } from 'lucide-react';
+
+// Número do WhatsApp do Grupo Infoco / Iuptec
+// ALTERE para o número real antes do deploy
+const WHATSAPP_NUMBER = '5534999999999';
+const WHATSAPP_MESSAGE = 'Olá! Vim pelo site da Iuptec e gostaria de saber mais sobre as soluções de IA.';
 
 export default function ChatWidget() {
-  const [isOpen, setIsOpen] = useState(false)
-  const [step, setStep] = useState('initial')
-  const [leadData, setLeadData] = useState({
-    name: '',
-    phone: '',
-    email: '',
-    companySize: '',
-    hasIA: '',
-    goal: ''
-  })
-  const [messages, setMessages] = useState([
-    {
-      role: 'assistant',
-      content: 'Olá! 👋 Sou o Assistente da Iuptec. Vamos descobrir a melhor solução pra você!'
-    }
-  ])
-  const [input, setInput] = useState('')
-  const scrollRef = useRef(null)
+  const [isOpen, setIsOpen] = useState(false);
 
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-    }
-  }, [messages])
-
-  const addMessage = (role, content, buttons = null) => {
-    setMessages(prev => [...prev, { role, content, buttons }])
-  }
-
-  const formatPhone = (value) => {
-    const digits = value.replace(/\D/g, '').slice(0, 11)
-    if (digits.length <= 2) return `(${digits}`
-    if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`
-    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
-  }
-
-  const getRecommendation = () => {
-    const { companySize, hasIA, goal } = leadData
-    
-    // Lógica de recomendação
-    if (goal === 'aprender' || companySize === 'solo' || hasIA === 'nao') {
-      return {
-        product: 'Academia Online',
-        price: 'R$ 997',
-        description: '🎓 Do zero ao avançado em IA\n✨ Sem programar\n✨ 6 módulos + projetos',
-        cta: 'Quero começar agora'
-      }
-    }
-    
-    if (goal === 'automatizar' || companySize === 'pequena') {
-      return {
-        product: 'Hiperzord',
-        price: 'R$ 297/mês ou R$ 1.997/ano',
-        description: '⚡ Automações prontas\n✨ Ferramentas profissionais\n✨ Implementação rápida',
-        cta: 'Começar agora'
-      }
-    }
-    
-    if (goal === 'presencial') {
-      return {
-        product: 'Imersão IE',
-        price: 'R$ 497',
-        description: '🎯 Presencial\n✨ 3 semanas acompanhamento\n✨ N8N para agentes',
-        cta: 'Quero participar'
-      }
-    }
-    
-    // Default: On-demand
-    return {
-      product: 'Desenvolvimento On-demand',
-      price: 'Sob consulta',
-      description: '🎯 Solução customizada\n✨ Agentes sob medida\n✨ Integração completa',
-      cta: 'Falar com especialista'
-    }
-  }
-
-  const handleInitialChoice = (choice) => {
-    if (choice === 'start') {
-      addMessage('user', 'Vamos começar!')
-      addMessage('assistant', 'Ótimo! Qual seu nome? 😊')
-      setStep('name')
-    }
-  }
-
-  const handleNameSubmit = () => {
-    if (!input.trim()) return
-    const name = input.trim()
-    setLeadData(prev => ({ ...prev, name }))
-    addMessage('user', name)
-    addMessage('assistant', `Prazer, ${name}! 👋\n\nQual seu WhatsApp com DDD?`)
-    setInput('')
-    setStep('phone')
-  }
-
-  const handlePhoneSubmit = () => {
-    if (!input.trim()) return
-    const phone = input.trim()
-    setLeadData(prev => ({ ...prev, phone }))
-    addMessage('user', phone)
-    addMessage('assistant', 'Perfeito! E seu melhor e-mail?')
-    setInput('')
-    setStep('email')
-  }
-
-  const handleEmailSubmit = () => {
-    if (!input.trim()) return
-    const email = input.trim()
-    setLeadData(prev => ({ ...prev, email }))
-    addMessage('user', email)
-    
-    localStorage.setItem('iuptec_lead', JSON.stringify({ ...leadData, email }))
-    
-    addMessage('assistant', 
-      'Agora, me conta:\n\nQuantas pessoas trabalham na sua empresa?',
-      [
-        { text: 'Só eu', value: 'solo' },
-        { text: '2-10 pessoas', value: 'pequena' },
-        { text: '11-50 pessoas', value: 'media' },
-        { text: 'Mais de 50', value: 'grande' }
-      ]
-    )
-    setInput('')
-    setStep('companySize')
-  }
-
-  const handleCompanySize = (size) => {
-    setLeadData(prev => ({ ...prev, companySize: size }))
-    const sizeText = {
-      'solo': 'Só eu',
-      'pequena': '2-10 pessoas',
-      'media': '11-50 pessoas',
-      'grande': 'Mais de 50'
-    }
-    addMessage('user', sizeText[size])
-    
-    addMessage('assistant',
-      'Sua empresa já usa IA de alguma forma?',
-      [
-        { text: 'Sim, já usamos', value: 'sim' },
-        { text: 'Não, ainda não', value: 'nao' },
-        { text: 'Estamos começando', value: 'comecando' }
-      ]
-    )
-    setStep('hasIA')
-  }
-
-  const handleHasIA = (hasIA) => {
-    setLeadData(prev => ({ ...prev, hasIA }))
-    const hasIAText = {
-      'sim': 'Sim, já usamos',
-      'nao': 'Não, ainda não',
-      'comecando': 'Estamos começando'
-    }
-    addMessage('user', hasIAText[hasIA])
-    
-    addMessage('assistant',
-      'Qual seu principal objetivo?',
-      [
-        { text: '🎓 Aprender IA', value: 'aprender' },
-        { text: '⚡ Automatizar processos', value: 'automatizar' },
-        { text: '🎯 Imersão presencial', value: 'presencial' },
-        { text: '🔧 Solução customizada', value: 'custom' }
-      ]
-    )
-    setStep('goal')
-  }
-
-  const handleGoal = (goal) => {
-    setLeadData(prev => ({ ...prev, goal }))
-    const goalText = {
-      'aprender': '🎓 Aprender IA',
-      'automatizar': '⚡ Automatizar processos',
-      'presencial': '🎯 Imersão presencial',
-      'custom': '🔧 Solução customizada'
-    }
-    addMessage('user', goalText[goal])
-    
-    const finalData = { ...leadData, goal }
-    const recommendation = getRecommendation()
-    
-    setTimeout(() => {
-      addMessage('assistant',
-        `Perfeito, ${leadData.name}! 🎉\n\nBaseado no seu perfil, recomendo:\n\n**${recommendation.product}**\n${recommendation.price}\n\n${recommendation.description}`,
-        [
-          { text: recommendation.cta, action: 'signup' },
-          { text: '💬 Falar no WhatsApp', action: 'whatsapp' }
-        ]
-      )
-      setStep('recommendation')
-    }, 500)
-  }
-
-  const handleAction = (action) => {
-    if (action === 'signup') {
-      addMessage('user', 'Quero começar!')
-      addMessage('assistant',
-        `Ótimo! Vou te redirecionar para criar sua conta.\n\nVocê receberá:\n✅ Acesso imediato\n✅ Onboarding guiado\n✅ Suporte especializado`
-      )
-      setTimeout(() => {
-        // Redirecionar para página de signup
-        window.location.href = '/signup'
-      }, 2000)
-    } else if (action === 'whatsapp') {
-      addMessage('user', 'Prefiro falar no WhatsApp')
-      addMessage('assistant',
-        `Perfeito! Te conectando agora:\n\n📱 (31) 98468-3944\n\n👤 ${leadData.name}\n📱 ${leadData.phone}\n📧 ${leadData.email}`
-      )
-      setTimeout(() => {
-        window.open(`https://wa.me/5531984683944?text=Olá! Sou ${leadData.name}, vim do chat do site`, '_blank')
-      }, 1000)
-    }
-  }
-
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      if (step === 'name') handleNameSubmit()
-      else if (step === 'phone') handlePhoneSubmit()
-      else if (step === 'email') handleEmailSubmit()
-    }
-  }
+  const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
-      {isOpen ? (
-        <div className="w-[360px] md:w-[420px] h-[600px] rounded-[32px] overflow-hidden flex flex-col shadow-2xl bg-dark-900/95 backdrop-blur-xl border border-white/10 border-b-4 border-b-iuptec-orange">
+    <>
+      {/* Botão flutuante */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        aria-label={isOpen ? 'Fechar menu de contato' : 'Abrir menu de contato'}
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-iuptec-teal shadow-lg shadow-iuptec-teal/30 flex items-center justify-center hover:scale-105 transition-all duration-200"
+      >
+        {isOpen
+          ? <X className="w-5 h-5 text-dark-950" />
+          : <MessageCircle className="w-5 h-5 text-dark-950" />
+        }
+      </button>
+
+      {/* Painel */}
+      {isOpen && (
+        <div className="fixed bottom-24 right-6 z-50 w-72 bg-dark-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+
           {/* Header */}
-          <div className="p-5 bg-gradient-to-r from-dark-900 to-dark-800 text-white flex justify-between items-center border-b border-white/5 flex-shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-iuptec-orange to-yellow-400 rounded-full flex items-center justify-center border border-white/20">
-                <span className="text-xl">🤖</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="font-black text-[10px] uppercase tracking-widest leading-none mb-1">
-                  Assistente Iuptec
-                </span>
-                <span className="text-[8px] text-iuptec-teal font-bold uppercase tracking-widest flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
-                  Online agora
-                </span>
-              </div>
-            </div>
-            <button 
-              onClick={() => setIsOpen(false)}
-              className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors"
+          <div className="px-5 py-4 border-b border-white/10">
+            <p className="font-bold text-white text-sm">Fale com a Iuptec</p>
+            <p className="text-white/40 text-xs mt-0.5">Resposta rápida pela equipe</p>
+          </div>
+
+          {/* Opções */}
+          <div className="p-4 space-y-3">
+
+            {/* WhatsApp direto */}
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-4 p-4 rounded-xl bg-[#25D366]/10 border border-[#25D366]/20 hover:border-[#25D366]/50 transition-all group"
             >
-              ✕
-            </button>
+              {/* Ícone WhatsApp SVG */}
+              <div className="w-9 h-9 rounded-lg bg-[#25D366] flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="text-white text-sm font-semibold">WhatsApp</p>
+                <p className="text-white/40 text-xs">Resposta em minutos</p>
+              </div>
+              <ArrowRight className="w-4 h-4 text-white/30 group-hover:text-[#25D366] transition-colors" />
+            </a>
+
+            {/* Qualificação conversacional */}
+            <a
+              href="/qualificacao"
+              className="flex items-center gap-4 p-4 rounded-xl bg-iuptec-teal/10 border border-iuptec-teal/20 hover:border-iuptec-teal/50 transition-all group"
+            >
+              <div className="w-9 h-9 rounded-lg bg-iuptec-teal/20 border border-iuptec-teal/30 flex items-center justify-center flex-shrink-0">
+                <MessageCircle className="w-5 h-5 text-iuptec-teal" />
+              </div>
+              <div className="flex-1">
+                <p className="text-white text-sm font-semibold">Diagnóstico gratuito</p>
+                <p className="text-white/40 text-xs">Responda 5 perguntas e receba uma análise</p>
+              </div>
+              <ArrowRight className="w-4 h-4 text-white/30 group-hover:text-iuptec-teal transition-colors" />
+            </a>
+
           </div>
 
-          {/* Messages */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 space-y-4 bg-dark-950/40">
-            {messages.map((msg, i) => (
-              <div key={i}>
-                <div className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[85%] p-4 rounded-2xl text-xs leading-relaxed font-medium whitespace-pre-line ${
-                    msg.role === 'user'
-                      ? 'bg-gradient-to-br from-iuptec-orange to-yellow-400 text-dark-950 rounded-tr-none shadow-lg'
-                      : 'bg-dark-800/60 backdrop-blur-sm text-slate-200 rounded-tl-none border border-white/5'
-                  }`}>
-                    {msg.content}
-                  </div>
-                </div>
-
-                {msg.buttons && (
-                  <div className="flex flex-col gap-2 mt-3">
-                    {msg.buttons.map((btn, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => {
-                          if (btn.value) {
-                            if (step === 'companySize') handleCompanySize(btn.value)
-                            else if (step === 'hasIA') handleHasIA(btn.value)
-                            else if (step === 'goal') handleGoal(btn.value)
-                          } else if (btn.action) {
-                            handleAction(btn.action)
-                          }
-                        }}
-                        className="w-full py-3 bg-gradient-to-r from-iuptec-orange to-yellow-400 text-dark-950 rounded-xl font-bold text-sm hover:shadow-lg transition"
-                      >
-                        {btn.text}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-
-            {step === 'initial' && messages.length === 1 && (
-              <div className="flex flex-col gap-3 mt-4">
-                <button
-                  onClick={() => handleInitialChoice('start')}
-                  className="w-full py-4 bg-gradient-to-br from-iuptec-orange to-yellow-400 text-dark-950 rounded-2xl font-bold text-sm hover:shadow-lg transition"
-                >
-                  Descobrir solução ideal
-                </button>
-              </div>
-            )}
+          {/* Footer */}
+          <div className="px-5 py-3 border-t border-white/5">
+            <p className="text-white/25 text-xs text-center">
+              Iuptec · Grupo Infoco
+            </p>
           </div>
 
-          {/* Input */}
-          {(step === 'name' || step === 'phone' || step === 'email') && (
-            <div className="p-5 border-t border-white/5 flex gap-3 bg-dark-900/20 flex-shrink-0">
-              <input
-                type="text"
-                className="flex-grow bg-dark-800/50 border border-white/10 rounded-full px-5 py-3 text-xs text-white focus:outline-none focus:border-iuptec-orange transition-colors placeholder-white/40"
-                placeholder={
-                  step === 'name' ? 'Digite seu nome...' :
-                  step === 'phone' ? '(99) 99999-9999' :
-                  'seu@email.com'
-                }
-                value={step === 'phone' ? formatPhone(input) : input}
-                onChange={e => setInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                autoFocus
-              />
-              <button
-                onClick={() => {
-                  if (step === 'name') handleNameSubmit()
-                  else if (step === 'phone') handlePhoneSubmit()
-                  else if (step === 'email') handleEmailSubmit()
-                }}
-                disabled={!input.trim()}
-                className="w-12 h-12 bg-gradient-to-br from-iuptec-orange to-yellow-400 rounded-full flex items-center justify-center text-dark-950 transition-all transform active:scale-90 shadow-lg disabled:opacity-50"
-              >
-                ➤
-              </button>
-            </div>
-          )}
         </div>
-      ) : (
-        <button
-          onClick={() => setIsOpen(true)}
-          className="w-16 h-16 bg-gradient-to-br from-iuptec-orange to-yellow-400 text-dark-950 rounded-full flex items-center justify-center shadow-2xl shadow-iuptec-orange/40 transition-transform hover:scale-110 active:scale-95 group relative"
-        >
-          <span className="text-2xl group-hover:rotate-12 transition-transform">💬</span>
-          <span className="absolute -top-1 -right-1 flex h-6 w-6">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-iuptec-teal opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-6 w-6 bg-iuptec-teal text-[10px] items-center justify-center font-black uppercase text-dark-950">
-              IA
-            </span>
-          </span>
-        </button>
       )}
-    </div>
-  )
+    </>
+  );
 }

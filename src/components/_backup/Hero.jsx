@@ -21,8 +21,8 @@ export default function Hero() {
             </h1>
             
             <p className="text-xl text-white/70 leading-relaxed">
-              Da automação inteligente à arquitetura AI-First — entregamos soluções que transformam como os negócios{' '}
-              <strong className="text-iuptec-teal">competem e escalam.</strong>.
+              30+ anos criando empresas. Agora ajudamos você a crescer com IA de forma{' '}
+              <strong className="text-iuptec-teal">prática e acessível</strong>.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4">

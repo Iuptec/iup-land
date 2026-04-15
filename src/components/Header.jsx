@@ -89,16 +89,10 @@ const handleScroll = (e, targetId) => {
             ))}
           </nav>
 
-          <Button 
+          <Button
             className="flex flex-col sm:flex-row gap-4"
             variant="animated"
-            onClick={() => {
-              window.open(
-                'https://api.whatsapp.com/send/?phone=5531975740510&text=Ol%C3%A1%21+Vim+do+site+e+quero+conhecer+a+Tucont+%EF%BF%BD&type=phone_number&app_absent=0',
-                '_blank',
-                'noopener,noreferrer'
-              );
-            }}
+            onClick={() => window.dispatchEvent(new CustomEvent('openChat'))}
           >
             Fale Conosco
           </Button>
@@ -133,15 +127,12 @@ const handleScroll = (e, targetId) => {
                   {item.label}
                 </button>
               ))}
-              <Button 
+              <Button
                 className="flex flex-col sm:flex-row gap-4"
                 variant="animated"
                 onClick={() => {
-                  window.open(
-                    'https://api.whatsapp.com/send/?phone=5531975740510&text=Ol%C3%A1%21+Vim+do+site+e+quero+conhecer+a+Tucont+%EF%BF%BD&type=phone_number&app_absent=0',
-                    '_blank',
-                    'noopener,noreferrer'
-                  );
+                  setIsMobileMenuOpen(false);
+                  window.dispatchEvent(new CustomEvent('openChat'));
                 }}
               >
                 Fale Conosco

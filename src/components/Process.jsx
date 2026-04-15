@@ -3,6 +3,8 @@ import { useInView } from 'framer-motion';
 import { useRef } from 'react';
 import { Search, FileText, Rocket, Handshake, Sparkles } from 'lucide-react';
 
+const openChat = () => window.dispatchEvent(new CustomEvent('openChat'));
+
 const iconMap = {
   '🔍': Search,
   '📝': FileText,
@@ -148,6 +150,17 @@ export default function Process() {
               <ProcessStep key={idx} step={step} index={idx} />
             ))}
           </div>
+        </div>
+
+        {/* CTA */}
+        <div className="mt-16 text-center">
+          <p className="text-white/60 mb-6">Comece hoje com um diagnóstico gratuito e sem compromisso.</p>
+          <button
+            onClick={openChat}
+            className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-dark-950 bg-gradient-to-r from-iuptec-orange to-yellow-400 hover:from-yellow-400 hover:to-iuptec-orange transition-all duration-300 hover:shadow-lg hover:shadow-iuptec-orange/40 hover:-translate-y-0.5"
+          >
+            Solicitar diagnóstico gratuito
+          </button>
         </div>
       </div>
     </section>

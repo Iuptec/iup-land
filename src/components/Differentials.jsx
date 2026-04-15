@@ -1,5 +1,7 @@
 import { Trophy, DollarSign, MapPin, Zap, Sparkles } from 'lucide-react';
 
+const WHATSAPP_URL = 'https://api.whatsapp.com/send/?phone=5531975740510&text=Ol%C3%A1!+Vim+do+site+e+quero+falar+com+um+especialista+Iuptec';
+
 export default function Differentials() {
   const items = [
 
@@ -109,6 +111,19 @@ export default function Differentials() {
               </div>
             );
           })}
+        </div>
+
+        {/* CTA */}
+        <div className="mt-16 text-center">
+          <p className="text-white/60 mb-6">Junte-se às empresas que já operam com IA de verdade.</p>
+          <a
+            href={WHATSAPP_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-bold border-2 border-iuptec-teal text-iuptec-teal hover:bg-iuptec-teal/10 transition-all duration-300 hover:-translate-y-0.5"
+          >
+            Falar com um especialista
+          </a>
         </div>
       </div>
     </section>

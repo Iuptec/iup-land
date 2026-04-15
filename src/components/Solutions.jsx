@@ -1,11 +1,12 @@
 import { Bot, Layers, Cpu } from 'lucide-react';
 import Button from './ui/Button';
 
-// Cada solução tem: ícone, título, descrição, tags de entrega e destaque visual
+const openChat = () => window.dispatchEvent(new CustomEvent('openChat'));
+
 const solutions = [
   {
     icon: Bot,
-    tag: 'Produto de Entrada',
+    tag: 'Comece por aqui',
     title: 'Agentes & Automações Inteligentes',
     description:
       'Eliminamos trabalho manual do seu operacional. Atendimento, pré-venda, suporte, financeiro — orquestrados por IA com integrações via API.',
@@ -18,22 +19,6 @@ const solutions = [
     ],
     accent: 'teal',
     featured: false,
-  },
-  {
-    icon: Layers,
-    tag: 'Projetos On Demand',
-    title: 'MVPs, Produtos & Aplicações',
-    description:
-      'Tiramos a ideia do papel e entregamos software real. Do MVP validado ao produto completo, com IA aplicada onde gera mais resultado.',
-    deliverables: [
-      'MVPs em semanas, não meses',
-      'SaaS e aplicações web',
-      'Produtos com IA embarcada',
-      'Stack moderna e escalável',
-      'Entrega iterativa com validação',
-    ],
-    accent: 'orange',
-    featured: true,
   },
   {
     icon: Cpu,
@@ -50,6 +35,22 @@ const solutions = [
     ],
     accent: 'teal',
     featured: false,
+  },
+  {
+    icon: Layers,
+    tag: 'Tire sua ideia do papel',
+    title: 'MVPs, Produtos & Aplicações',
+    description:
+      'Tiramos a ideia do papel e entregamos software real. Do MVP validado ao produto completo, com IA aplicada onde gera mais resultado.',
+    deliverables: [
+      'MVPs em semanas, não meses',
+      'SaaS e aplicações web',
+      'Produtos com IA embarcada',
+      'Stack moderna e escalável',
+      'Entrega iterativa com validação',
+    ],
+    accent: 'orange',
+    featured: true,
   },
 ];
 
@@ -105,7 +106,7 @@ export default function Solutions() {
                 </div>
 
                 {/* Ícone */}
-                <div className={`w-12 h-12 rounded-xl bg-dark-900 border border-white/10 flex items-center justify-center mb-6`}>
+                <div className="w-12 h-12 rounded-xl bg-dark-900 border border-white/10 flex items-center justify-center mb-6">
                   <Icon className={`w-6 h-6 ${colors.icon}`} strokeWidth={1.5} />
                 </div>
 
@@ -125,7 +126,10 @@ export default function Solutions() {
 
                 {/* CTA */}
                 <div className="mt-auto">
-                  <Button variant={s.featured ? 'animated' : 'sparkle'}>
+                  <Button
+                    variant={s.featured ? 'animated' : 'sparkle'}
+                    onClick={openChat}
+                  >
                     Quero saber mais →
                   </Button>
                 </div>

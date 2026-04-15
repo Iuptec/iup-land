@@ -1,5 +1,7 @@
 import { Clock, Brain, DollarSign, ArrowDown, Sparkles } from 'lucide-react';
 
+const openChat = () => window.dispatchEvent(new CustomEvent('openChat'));
+
 export default function ProblemSolution() {
   const problems = [
     { 
@@ -108,9 +110,15 @@ export default function ProblemSolution() {
             <h3 className="text-2xl lg:text-3xl font-black mb-2">
               Viu, é só começar!
             </h3>
-            <p className="text-lg text-white/70 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-lg text-white/70 max-w-3xl mx-auto leading-relaxed mb-8">
               É dinheiro novo no caixa pois combinamos, <strong className="text-iuptec-teal">redução de custos nos processos, LTV maior com clientes satisfeitos, ofertas produtos e serviços.</strong>
             </p>
+            <button
+              onClick={openChat}
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-dark-950 bg-gradient-to-r from-iuptec-orange to-yellow-400 hover:from-yellow-400 hover:to-iuptec-orange transition-all duration-300 hover:shadow-lg hover:shadow-iuptec-orange/40 hover:-translate-y-0.5"
+            >
+              Descobrir minha solução
+            </button>
           </div>
         </div>
       </div>

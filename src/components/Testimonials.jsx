@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Star, Quote } from 'lucide-react';
 
+const openChat = () => window.dispatchEvent(new CustomEvent('openChat'));
+
 export default function Testimonials() {
   const [hoveredCard, setHoveredCard] = useState(null);
   
@@ -168,6 +170,17 @@ export default function Testimonials() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* CTA */}
+        <div className="mt-16 text-center">
+          <p className="text-white/60 mb-6">Seu negócio pode ser o próximo caso de sucesso.</p>
+          <button
+            onClick={openChat}
+            className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-dark-950 bg-gradient-to-r from-iuptec-orange to-yellow-400 hover:from-yellow-400 hover:to-iuptec-orange transition-all duration-300 hover:shadow-lg hover:shadow-iuptec-orange/40 hover:-translate-y-0.5"
+          >
+            Quero transformar meu negócio
+          </button>
         </div>
       </div>
     </section>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
+import { Link } from "react-router-dom";
 import Button from "./ui/Button";
 
 
@@ -30,20 +31,25 @@ const handleScroll = (e, targetId) => {
   const navItems = [
     { label: "Home", href: "#" },
     { label: "Soluções", href: "#solucoes" },
+    { label: "Educação", href: "/educacao", isExternal: true },
     { label: "Ferramentas", href: "#", isModal: true },
     { label: "Portfolio", href: "#portfolio" },
     { label: "Contato", href: "#contato" },
   ];
 
-  const handleNavClick = (e, href, isModal = false) => {
+  const handleNavClick = (e, href, isModal = false, isExternal = false) => {
+    if (isExternal) {
+      setIsMobileMenuOpen(false);
+      return; // deixa o Link do react-router agir
+    }
     e.preventDefault();
-    
+
     if (isModal) {
-      onOpenToolsModal(); // Chama a função passada como prop
+      onOpenToolsModal();
       setIsMobileMenuOpen(false);
       return;
     }
-    
+
     if (href === "#") {
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
@@ -74,31 +80,38 @@ const handleScroll = (e, targetId) => {
           </a>
 
           <nav className="hidden md:flex items-center gap-8">
-            {navItems.map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
-                onClick={(e) => handleNavClick(e, item.href, item.isModal)}
-                className="relative group cursor-pointer"
-              >
-                <span className="text-white/80 hover:text-iuptec-teal transition-colors duration-300 font-medium">
-                  {item.label}
-                </span>
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-iuptec-teal transition-all duration-300 group-hover:w-full" />
-              </a>
-            ))}
+            {navItems.map((item) =>
+              item.isExternal ? (
+                <Link
+                  key={item.label}
+                  to={item.href}
+                  className="relative group cursor-pointer"
+                >
+                  <span className="text-white/80 hover:text-iuptec-teal transition-colors duration-300 font-medium">
+                    {item.label}
+                  </span>
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-iuptec-teal transition-all duration-300 group-hover:w-full" />
+                </Link>
+              ) : (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  onClick={(e) => handleNavClick(e, item.href, item.isModal)}
+                  className="relative group cursor-pointer"
+                >
+                  <span className="text-white/80 hover:text-iuptec-teal transition-colors duration-300 font-medium">
+                    {item.label}
+                  </span>
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-iuptec-teal transition-all duration-300 group-hover:w-full" />
+                </a>
+              )
+            )}
           </nav>
 
-          <Button 
+          <Button
             className="flex flex-col sm:flex-row gap-4"
             variant="animated"
-            onClick={() => {
-              window.open(
-                'https://api.whatsapp.com/send/?phone=5531975740510&text=Ol%C3%A1%21+Vim+do+site+e+quero+conhecer+a+Tucont+%EF%BF%BD&type=phone_number&app_absent=0',
-                '_blank',
-                'noopener,noreferrer'
-              );
-            }}
+            onClick={() => window.dispatchEvent(new CustomEvent('openChat'))}
           >
             Fale Conosco
           </Button>
@@ -117,31 +130,39 @@ const handleScroll = (e, targetId) => {
         <div className="fixed inset-0 z-40 md:hidden pt-20 bg-dark-950">
           <div className="max-w-7xl mx-auto px-6 py-8">
             <div className="flex flex-col gap-4">
-              {navItems.map((item) => (
-                <button
-                  key={item.label}
-                  onClick={(e) => {
-                    if (item.isModal) {
-                      onOpenToolsModal();
-                    } else {
-                      handleNavClick(e, item.href, item.isModal);
-                    }
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="py-3 text-lg font-medium text-white/90 hover:text-iuptec-teal transition-colors text-left"
-                >
-                  {item.label}
-                </button>
-              ))}
-              <Button 
+              {navItems.map((item) =>
+                item.isExternal ? (
+                  <Link
+                    key={item.label}
+                    to={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="py-3 text-lg font-medium text-white/90 hover:text-iuptec-teal transition-colors text-left"
+                  >
+                    {item.label}
+                  </Link>
+                ) : (
+                  <button
+                    key={item.label}
+                    onClick={(e) => {
+                      if (item.isModal) {
+                        onOpenToolsModal();
+                      } else {
+                        handleNavClick(e, item.href, item.isModal);
+                      }
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="py-3 text-lg font-medium text-white/90 hover:text-iuptec-teal transition-colors text-left"
+                  >
+                    {item.label}
+                  </button>
+                )
+              )}
+              <Button
                 className="flex flex-col sm:flex-row gap-4"
                 variant="animated"
                 onClick={() => {
-                  window.open(
-                    'https://api.whatsapp.com/send/?phone=5531975740510&text=Ol%C3%A1%21+Vim+do+site+e+quero+conhecer+a+Tucont+%EF%BF%BD&type=phone_number&app_absent=0',
-                    '_blank',
-                    'noopener,noreferrer'
-                  );
+                  setIsMobileMenuOpen(false);
+                  window.dispatchEvent(new CustomEvent('openChat'));
                 }}
               >
                 Fale Conosco

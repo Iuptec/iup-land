@@ -1,96 +1,143 @@
-import { Code2, Zap, GraduationCap } from 'lucide-react';
+import { Bot, Layers, Cpu } from 'lucide-react';
 import Button from './ui/Button';
 
-export default function Solutions() {
-  const solutions = [
-    {
-      icon: Code2,
-      title: 'Desenvolvimento Custom de IA',
-      description: 'Soluções sob medida integradas aos seus sistemas',
-      features: ['Agentes inteligentes', 'APIs OpenAI/Claude', 'Make/n8n', 'Python'],
-      buttonVariant: 'sparkle'
-    },
-    {
-      icon: Zap,
-      title: 'Automações Prontas (Plug & Play)',
-      description: 'Implementar em horas, não meses',
-      features: ['Atendimento 24/7', 'Qualificação de Leads', 'Suporte Técnico', 'Gestão Financeira'],
-      badge: 'Mais Popular',
-      buttonVariant: 'animated',
-      featured: true
-    },
-    {
-      icon: GraduationCap,
-      title: 'Educação em IA',
-      description: 'Do básico ao avançado sem programação',
-      features: ['Projetos reais', 'No-code', 'Comunidade', 'Certificado'],
-      buttonVariant: 'sparkle'
-    }
-  ];
+const openChat = () => window.dispatchEvent(new CustomEvent('openChat'));
 
+const solutions = [
+  {
+    icon: Bot,
+    tag: 'Comece por aqui',
+    title: 'Agentes & Automações Inteligentes',
+    description:
+      'Eliminamos trabalho manual do seu operacional. Atendimento, pré-venda, suporte, financeiro — orquestrados por IA com integrações via API.',
+    deliverables: [
+      'Atendimento 24/7 no WhatsApp',
+      'Qualificação e pré-venda automatizada',
+      'Agentes e multiagentes',
+      'Integrações com CRM, ERP e APIs',
+      'Suporte e financeiro automatizados',
+    ],
+    accent: 'teal',
+    featured: false,
+  },
+  {
+    icon: Cpu,
+    tag: 'Projetos On Demand',
+    title: 'Arquitetura AI-First',
+    description:
+      'Para empresas que precisam transformar como operam. Construímos sistemas sustentáveis com IA — microserviços, LLMs, RAG e infraestrutura que escala.',
+    deliverables: [
+      'Arquitetura de IA enterprise',
+      'Fine-tuning e RAG customizado',
+      'Microserviços escaláveis',
+      'Governança e IA ética',
+      'Liderança técnica no projeto',
+    ],
+    accent: 'teal',
+    featured: false,
+  },
+  {
+    icon: Layers,
+    tag: 'Tire sua ideia do papel',
+    title: 'MVPs, Produtos & Aplicações',
+    description:
+      'Tiramos a ideia do papel e entregamos software real. Do MVP validado ao produto completo, com IA aplicada onde gera mais resultado.',
+    deliverables: [
+      'MVPs em semanas, não meses',
+      'SaaS e aplicações web',
+      'Produtos com IA embarcada',
+      'Stack moderna e escalável',
+      'Entrega iterativa com validação',
+    ],
+    accent: 'orange',
+    featured: true,
+  },
+];
+
+const accentMap = {
+  teal: {
+    border: 'border-iuptec-teal/20 hover:border-iuptec-teal/50',
+    tag: 'text-iuptec-teal bg-iuptec-teal/10 border-iuptec-teal/20',
+    icon: 'text-iuptec-teal',
+    dot: 'bg-iuptec-teal',
+  },
+  orange: {
+    border: 'border-iuptec-orange/30 hover:border-iuptec-orange/60',
+    tag: 'text-iuptec-orange bg-iuptec-orange/10 border-iuptec-orange/20',
+    icon: 'text-iuptec-orange',
+    dot: 'bg-iuptec-orange',
+  },
+};
+
+export default function Solutions() {
   return (
-    <section id="solucoes" className="py-12 lg:py-16 bg-dark-900">
+    <section id="solucoes" className="py-20 lg:py-28 bg-dark-900">
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
-        <div className="text-center mb-16">
-          <div className="inline-block px-4 py-2 bg-dark-800/60 border border-iuptec-teal/20 rounded-full text-iuptec-teal text-sm font-bold mb-6">
-            Soluções
-          </div>
-          <h2 className="text-4xl lg:text-5xl font-black mb-6">Transforme-se com IA</h2>
-          <p className="text-xl text-white/70 max-w-3xl mx-auto">
-            Escolha um caminho e implemente IA em seu negócio, cada um adaptado às suas necessidades.
+
+        {/* Header */}
+        <div className="mb-16">
+          <span className="text-xs font-semibold tracking-widest text-iuptec-teal uppercase">
+            O que fazemos
+          </span>
+          <h2 className="text-4xl lg:text-5xl font-black text-white mt-4 mb-4">
+            Três formas de implementar<br className="hidden lg:block" /> IA no seu negócio
+          </h2>
+          <p className="text-white/50 text-lg max-w-xl">
+            Cada projeto começa com um diagnóstico honesto sobre o que realmente vai gerar resultado.
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {solutions.map((solution, idx) => {
-            const IconComponent = solution.icon;
+        {/* Cards */}
+        <div className="grid lg:grid-cols-3 gap-6">
+          {solutions.map((s, idx) => {
+            const Icon = s.icon;
+            const colors = accentMap[s.accent];
+
             return (
-              <div 
-                key={idx} 
-                className={`solution-card relative bg-dark-800/80 backdrop-blur-md border-2 p-8 rounded-2xl transition-all flex flex-col ${
-                  solution.featured 
-                    ? 'solution-card-featured border-iuptec-orange/40' 
-                    : 'border-transparent hover:border-iuptec-teal/40'
-                }`}
+              <div
+                key={idx}
+                className={`relative flex flex-col bg-dark-800/50 border-2 ${colors.border} rounded-2xl p-8 transition-all duration-300`}
               >
-                {solution.badge && (
-                  <div className="solution-badge absolute -top-4 right-6 bg-gradient-to-r from-iuptec-orange to-yellow-400 text-dark-950 px-4 py-2 rounded-full text-sm font-bold">
-                    {solution.badge}
-                  </div>
-                )}
-                
-                <div className="solution-icon-wrapper mb-6 flex justify-center">
-                  <IconComponent 
-                    className={`w-12 h-12 ${
-                      solution.featured ? 'text-iuptec-orange' : 'text-iuptec-teal'
-                    }`} 
-                    strokeWidth={1.5}
-                  />
+                {/* Tag */}
+                <div className="mb-6">
+                  <span className={`text-xs font-semibold tracking-wide uppercase border px-3 py-1 rounded-full ${colors.tag}`}>
+                    {s.tag}
+                  </span>
                 </div>
-                
-                <h3 className="text-2xl font-bold mb-4 text-center">{solution.title}</h3>
-                <p className="text-white/70 mb-6 text-center">{solution.description}</p>
-                
-                <ul className="space-y-3 mb-8 flex-grow">
-                  {solution.features.map((feature, i) => (
-                    <li key={i} className="flex items-start space-x-3">
-                      <span className={`w-1.5 h-1.5 rounded-full mt-2 ${
-                        solution.featured ? 'bg-iuptec-orange' : 'bg-iuptec-teal'
-                      }`} />
-                      <span className="text-white/70">{feature}</span>
+
+                {/* Ícone */}
+                <div className="w-12 h-12 rounded-xl bg-dark-900 border border-white/10 flex items-center justify-center mb-6">
+                  <Icon className={`w-6 h-6 ${colors.icon}`} strokeWidth={1.5} />
+                </div>
+
+                {/* Título e descrição */}
+                <h3 className="text-xl font-bold text-white mb-3">{s.title}</h3>
+                <p className="text-white/50 text-sm leading-relaxed mb-8">{s.description}</p>
+
+                {/* Entregáveis */}
+                <ul className="space-y-2.5 mb-10 flex-grow">
+                  {s.deliverables.map((item, i) => (
+                    <li key={i} className="flex items-center gap-3 text-sm text-white/70">
+                      <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${colors.dot}`} />
+                      {item}
                     </li>
                   ))}
                 </ul>
-                
-                <div className="flex justify-center mt-auto">
-                  <Button variant={solution.buttonVariant}>
-                    Saiba mais →
+
+                {/* CTA */}
+                <div className="mt-auto">
+                  <Button
+                    variant={s.featured ? 'animated' : 'sparkle'}
+                    onClick={openChat}
+                  >
+                    Quero saber mais →
                   </Button>
                 </div>
               </div>
             );
           })}
         </div>
+
       </div>
     </section>
   );

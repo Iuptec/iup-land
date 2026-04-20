@@ -37,9 +37,9 @@ const AGENDA = [
 ];
 
 const DEPOIMENTOS = [
-  { nome: 'Carlos M.', cargo: 'Empresário', texto: 'A imersão mudou minha visão sobre IA. Saí com agentes funcionando e economizei 20+ horas por semana. Valeu cada centavo.' },
-  { nome: 'Patrícia R.', cargo: 'Consultora de RH', texto: 'Criei um assistente sem escrever uma linha de código em um único dia. Achava que IA era só para programadores.' },
-  { nome: 'Fernando S.', cargo: 'Gestor Financeiro', texto: 'Automatizei relatórios que me tomavam horas. ROI em 2 semanas. Recomendo para qualquer gestor que ainda não fez.' },
+  { nome: 'Alexandre Euler', cargo: 'CEO · CertiPiaui', texto: 'A imersão mudou minha visão sobre IA. Saí com agentes funcionando e economizei 20+ horas por semana. Valeu cada centavo.' },
+  { nome: 'Diego Bernardes', cargo: 'Gerente de Projetos · Dhara Tecnologia', texto: 'O curso me mostrou que eu não dominava nem o básico de IA. Hoje, minhas pesquisas são muito mais precisas e meu trabalho flui com muito mais agilidade e assertividade.' },
+  { nome: 'Walber Schwartz', cargo: 'CEO · Uberhub Code', texto: 'Minha experiência com a imersão promovida pela parceria IUPTEC-TUCONT foi excelente! Tanto pelo conteúdo de alto nível, quanto pela didática mão-na-massa. Recomendo para todos os profissionais e empreendedores que buscam aumentar sua produtividade com IA de forma rápida, objetiva e com profundidade.' },
 ];
 
 const FAQS = [

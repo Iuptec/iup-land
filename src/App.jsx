@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+
+// Site principal
 import Header from './components/Header'
 import Hero from './components/Hero'
 import Founders from './components/Founders'
@@ -14,23 +17,18 @@ import ChatWidget from './components/ChatWidget'
 import Modal from './components/ui/Modal'
 import ToolsModalContent from './components/modal/ToolsModalContent'
 
-export default function App() {
-  // Estado para controlar o modal de ferramentas
+// Páginas de educação
+import Educacao from './pages/Educacao'
+import Imersao from './pages/Imersao'
+import ProdutividadeClaude from './pages/cursos/ProdutividadeClaude'
+
+function HomePage() {
   const [isToolsModalOpen, setIsToolsModalOpen] = useState(false);
-
-  // Função para abrir o modal
-  const openToolsModal = () => {
-    setIsToolsModalOpen(true);
-  };
-
-  const closeToolsModal = () => {
-    setIsToolsModalOpen(false);
-  };
 
   return (
     <div className="min-h-screen bg-dark-950 text-white">
-      <Header onOpenToolsModal={openToolsModal} />
-      
+      <Header onOpenToolsModal={() => setIsToolsModalOpen(true)} />
+
       <main>
         <Hero />
         <Solutions />
@@ -42,19 +40,32 @@ export default function App() {
         <Testimonials />
         <Contact />
       </main>
-      
+
       <Footer />
       <ChatWidget />
-      
+
       {isToolsModalOpen && (
         <Modal
           isOpen={isToolsModalOpen}
-          onClose={closeToolsModal}
+          onClose={() => setIsToolsModalOpen(false)}
           title="Ferramentas Iuptec"
         >
           <ToolsModalContent />
         </Modal>
       )}
     </div>
-  )
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/educacao" element={<Educacao />} />
+        <Route path="/imersao" element={<Imersao />} />
+        <Route path="/cursos/produtividade-com-claude" element={<ProdutividadeClaude />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }

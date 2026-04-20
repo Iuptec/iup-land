@@ -7,7 +7,7 @@ const EVENTO = {
   edicao: '2ª Edição',
   data: '25 de Abril de 2026',
   dataISO: '2026-04-25T08:00:00',
-  horario: '8h00 — 17h30',
+  horario: '8h30 — 18h00',
   local: 'FAU Uberlândia',
   cidade: 'Uberlândia — MG',
   vagas: 60,
@@ -21,17 +21,19 @@ const EVENTO = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const AGENDA = [
-  { hora: '8h00',  instrutor: '—',       modulo: 'Credenciamento & Networking' },
-  { hora: '8h30',  instrutor: 'Geraldo', modulo: 'Módulo 1 — A Extinção Silenciosa e Como Se Reinventar' },
-  { hora: '9h15',  instrutor: 'Diego',   modulo: 'Módulo 2 — Fundamentos de IA (1ª, 2ª e 3ª Ondas)' },
-  { hora: '10h00', instrutor: 'Diego',   modulo: 'Módulo 3 — Construa seu Primeiro Agente (prático)' },
-  { hora: '11h00', instrutor: 'Diego',   modulo: 'Módulo 4 — Automação de Processos e Orquestradores' },
-  { hora: '12h00', instrutor: '—',       modulo: 'Almoço' },
-  { hora: '13h30', instrutor: 'Geraldo', modulo: 'Módulo 5 — Estratégia Exponencial' },
-  { hora: '15h00', instrutor: 'Ambos',   modulo: 'Módulo 6 — Consultoria e Próximos Passos' },
-  { hora: '16h15', instrutor: '—',       modulo: 'Coffee Break' },
-  { hora: '16h30', instrutor: 'Diego',   modulo: '🎁 Bônus — Módulo 7: Claude como co-piloto do seu negócio' },
-  { hora: '17h30', instrutor: '—',       modulo: 'Encerramento & Certificados' },
+  { hora: '8h30',  instrutor: 'Geraldo', modulo: 'Abertura — Se reinventar é obrigatório', sub: 'Reinvenção pessoal e empresarial: quem está mudando de rota e quem corre risco de morrer.' },
+  { hora: '9h15',  instrutor: 'Diego',   modulo: 'Módulo 1 — O que é IA e por que agora', sub: '' },
+  { hora: '10h00', instrutor: 'Diego',   modulo: 'Módulo 2 — Assistentes de IA na prática', sub: '' },
+  { hora: '11h00', instrutor: 'Diego',   modulo: 'Módulo 3 — IA com conhecimento do seu negócio (RAG)', sub: '' },
+  { hora: '12h00', instrutor: '—',       modulo: 'Almoço', sub: '' },
+  { hora: '13h15', instrutor: 'Geraldo', modulo: 'Módulo 4 — Escaneando Oportunidades', sub: '' },
+  { hora: '14h00', instrutor: 'Diego',   modulo: 'Módulo 5 — Agentes: IA que executa', sub: '' },
+  { hora: '15h00', instrutor: 'Diego',   modulo: 'Módulo 6 — Casos de uso por área', sub: '' },
+  { hora: '15h50', instrutor: '—',       modulo: 'Coffee Break', sub: '' },
+  { hora: '16h00', instrutor: 'Ambos',   modulo: 'Módulo 7 — Como implementar IA na sua empresa', sub: '' },
+  { hora: '16h45', instrutor: 'Diego',   modulo: '🎁 Bônus — Produtividade com Claude', sub: 'Claude como co-piloto do seu trabalho: automação, análise e escrita em outro nível.', isClaudeBonus: true },
+  { hora: '17h30', instrutor: 'Ambos',   modulo: 'Módulo 8 — Novidades e futuro', sub: '' },
+  { hora: '18h00', instrutor: '—',       modulo: 'Encerramento', sub: '' },
 ];
 
 const DEPOIMENTOS = [
@@ -254,6 +256,35 @@ export default function Imersao() {
             {AGENDA.map((item, i) => {
               const isBreak = item.instrutor === '—';
               const isBonus = item.modulo.startsWith('🎁');
+
+              if (item.isClaudeBonus) {
+                return (
+                  <div key={i} className="relative flex items-start gap-4 px-5 py-4 rounded-xl text-sm border-2 border-[#DA7756]/40 overflow-hidden"
+                    style={{ background: 'linear-gradient(135deg, rgba(218,119,86,0.08) 0%, rgba(106,64,155,0.08) 100%)' }}>
+                    {/* Fundo sutil */}
+                    <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 80% 50%, #DA7756 0%, transparent 60%)' }} />
+                    <span className="w-12 flex-shrink-0 font-mono text-xs text-white/35 mt-0.5 relative z-10">{item.hora}</span>
+                    <span className="w-14 flex-shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full text-center bg-iuptec-teal/15 text-iuptec-teal relative z-10">
+                      {item.instrutor}
+                    </span>
+                    <div className="flex-1 relative z-10">
+                      <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                        <span className="text-white font-semibold">{item.modulo}</span>
+                        {/* Claude logo badge */}
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border"
+                          style={{ background: 'rgba(218,119,86,0.15)', borderColor: 'rgba(218,119,86,0.4)', color: '#DA7756' }}>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" fill="currentColor"/>
+                          </svg>
+                          Claude · Anthropic
+                        </span>
+                      </div>
+                      {item.sub && <p className="text-xs text-white/45 leading-relaxed">{item.sub}</p>}
+                    </div>
+                  </div>
+                );
+              }
+
               return (
                 <div
                   key={i}
@@ -273,7 +304,10 @@ export default function Imersao() {
                       {item.instrutor}
                     </span>
                   )}
-                  <span className={`flex-1 ${isBreak ? 'text-xs uppercase tracking-widest' : ''}`}>{item.modulo}</span>
+                  <div className="flex-1">
+                    <span className={isBreak ? 'text-xs uppercase tracking-widest' : ''}>{item.modulo}</span>
+                    {item.sub && <p className="text-xs text-white/40 mt-0.5 leading-relaxed">{item.sub}</p>}
+                  </div>
                 </div>
               );
             })}
@@ -325,6 +359,25 @@ export default function Imersao() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* FOTOS DA 1ª EDIÇÃO */}
+      <section className="py-16">
+        <div className="max-w-4xl mx-auto px-6">
+          <span className="text-xs font-semibold tracking-widest text-iuptec-teal uppercase">1ª Edição · Janeiro 2026</span>
+          <h2 className="text-3xl font-black mt-3 mb-8">Como foi na <span className="text-iuptec-orange">prática</span></h2>
+          <div className="grid grid-cols-2 gap-3">
+            {/* Foto grupo — ocupa linha inteira */}
+            <div className="col-span-2 rounded-2xl overflow-hidden aspect-[16/9]">
+              <img
+                src="/imersao-2edicao.jpg"
+                alt="Turma da 1ª Edição da Imersão IE"
+                className="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-500"
+              />
+            </div>
+          </div>
+          <p className="text-center text-white/30 text-xs mt-4">Turma completa da 1ª Edição · Uberlândia</p>
         </div>
       </section>
 

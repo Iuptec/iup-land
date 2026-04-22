@@ -21,6 +21,7 @@ import ToolsModalContent from './components/modal/ToolsModalContent'
 import Educacao from './pages/Educacao'
 import Imersao from './pages/Imersao'
 import ProdutividadeClaude from './pages/cursos/ProdutividadeClaude'
+import ContadorIA from './pages/ContadorIA'
 
 function HomePage() {
   const [isToolsModalOpen, setIsToolsModalOpen] = useState(false);
@@ -65,6 +66,7 @@ export default function App() {
         <Route path="/educacao" element={<Educacao />} />
         <Route path="/imersao" element={<Imersao />} />
         <Route path="/cursos/produtividade-com-claude" element={<ProdutividadeClaude />} />
+        <Route path="/contador-ia" element={<ContadorIA />} />
       </Routes>
     </BrowserRouter>
   );
